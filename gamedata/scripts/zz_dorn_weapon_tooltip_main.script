@@ -57,7 +57,7 @@ local LOG = {
 	TOOLTIP   = { order = 1, color = "cyan" },
 }
 
--- Hit Power is weapon hit_power x 100 (x pellets for shotguns), no ammo k_hit.
+-- Hit Power is weapon hit_power x 100 (per pellet, same as other guns), no ammo k_hit.
 local DAMAGE_SCALE = 100
 
 local BUCK_SELF = "ammo_12x70_buck_self"
@@ -298,7 +298,7 @@ local HIT_POWER_STAT = {
 	sign = false,
 	show_always = true,
 	value_functor = {
-		"zz_dorn_weapon_tooltip_main", "scale_hit_power_for_pellets",
+		"zz_dorn_weapon_tooltip_main", "scale_hit_power_display",
 		"zz_dorn_weapon_tooltip_main", "prop_hit_power",
 	},
 }
@@ -434,20 +434,9 @@ function prop_ammo_torso_slash_flag(obj, sec)
 	end
 end
 
-function scale_hit_power_for_pellets(obj, sec, base_file, base_func, param)
+function scale_hit_power_display(obj, sec, base_file, base_func, param)
 	local base = _G[base_file][base_func](obj, sec, param)
-	local max_pellet_count = 0
-	local id = obj and obj:id()
-	local ammo_list = utils_item.get_ammo(sec, id)
-	for _, ammo_name in pairs(ammo_list) do
-		if ammo_name ~= BUCK_SELF then
-			local pellet_count = ini_sys:r_float_ex(ammo_name, "buck_shot") or 1
-			if pellet_count > max_pellet_count then
-				max_pellet_count = pellet_count
-			end
-		end
-	end
-	return math.floor(base * DAMAGE_SCALE * max_pellet_count)
+	return math.floor(base * DAMAGE_SCALE)
 end
 
 local function max_pellets(ammo_list)
