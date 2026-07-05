@@ -8,10 +8,10 @@
 			<title x="0" y="0" width="56" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">DAMAGE</text>
 			</title>
-			<grp_torso x="78" y="0" width="99" height="14" stretch="0">
+			<grp_torso x="78" y="0" width="114" height="14" stretch="0">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">vs Torso (BRC)</text>
 			</grp_torso>
-			<grp_head x="178" y="0" width="99" height="14" stretch="0">
+			<grp_head x="196" y="0" width="96" height="14" stretch="0">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">vs Head (BRC)</text>
 			</grp_head>
 		</header>
@@ -26,39 +26,39 @@
 			<t1 x="78" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">10</text>
 			</t1>
-			<t2 x="93" y="0" width="24" height="14" stretch="1">
+			<t2 x="96" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">20</text>
 			</t2>
-			<t3 x="108" y="0" width="24" height="14" stretch="1">
+			<t3 x="114" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">30</text>
 			</t3>
-			<t4 x="123" y="0" width="24" height="14" stretch="1">
+			<t4 x="132" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">40</text>
 			</t4>
-			<t5 x="138" y="0" width="24" height="14" stretch="1">
+			<t5 x="150" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">50</text>
 			</t5>
-			<t6 x="153" y="0" width="24" height="14" stretch="1">
+			<t6 x="168" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">60</text>
 			</t6>
-			<h1 x="178" y="0" width="24" height="14" stretch="1">
+			<h1 x="196" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">10</text>
 			</h1>
-			<h2 x="193" y="0" width="24" height="14" stretch="1">
+			<h2 x="214" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">20</text>
 			</h2>
-			<h3 x="208" y="0" width="24" height="14" stretch="1">
+			<h3 x="232" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">30</text>
 			</h3>
-			<h4 x="223" y="0" width="24" height="14" stretch="1">
+			<h4 x="250" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">35</text>
 			</h4>
-			<h5 x="238" y="0" width="24" height="14" stretch="1">
+			<h5 x="268" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="255" g="255" b="255" a="255" align="l" complex_mode="1">45</text>
 			</h5>
 		</col_hdr_2>
 		<!-- Separator line under the column headers -->
-		<sep x="0" y="29" width="262" height="8" stretch="1">
+		<sep x="0" y="29" width="292" height="8" stretch="1">
 			<texture a="150">ui_itm_line</texture>
 		</sep>
 		<!-- Data rows (y repositioned by script when rows are hidden) -->
@@ -72,34 +72,34 @@
 			<t1 x="78" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t1>
-			<t2 x="93" y="0" width="24" height="14" stretch="1">
+			<t2 x="96" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t2>
-			<t3 x="108" y="0" width="24" height="14" stretch="1">
+			<t3 x="114" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t3>
-			<t4 x="123" y="0" width="24" height="14" stretch="1">
+			<t4 x="132" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t4>
-			<t5 x="138" y="0" width="24" height="14" stretch="1">
+			<t5 x="150" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t5>
-			<t6 x="153" y="0" width="24" height="14" stretch="1">
+			<t6 x="168" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t6>
-			<h1 x="178" y="0" width="24" height="14" stretch="1">
+			<h1 x="196" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h1>
-			<h2 x="193" y="0" width="24" height="14" stretch="1">
+			<h2 x="214" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h2>
-			<h3 x="208" y="0" width="24" height="14" stretch="1">
+			<h3 x="232" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h3>
-			<h4 x="223" y="0" width="24" height="14" stretch="1">
+			<h4 x="250" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h4>
-			<h5 x="238" y="0" width="24" height="14" stretch="1">
+			<h5 x="268" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h5>
 		</row_1>
@@ -113,34 +113,34 @@
 			<t1 x="78" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t1>
-			<t2 x="93" y="0" width="24" height="14" stretch="1">
+			<t2 x="96" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t2>
-			<t3 x="108" y="0" width="24" height="14" stretch="1">
+			<t3 x="114" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t3>
-			<t4 x="123" y="0" width="24" height="14" stretch="1">
+			<t4 x="132" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t4>
-			<t5 x="138" y="0" width="24" height="14" stretch="1">
+			<t5 x="150" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t5>
-			<t6 x="153" y="0" width="24" height="14" stretch="1">
+			<t6 x="168" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t6>
-			<h1 x="178" y="0" width="24" height="14" stretch="1">
+			<h1 x="196" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h1>
-			<h2 x="193" y="0" width="24" height="14" stretch="1">
+			<h2 x="214" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h2>
-			<h3 x="208" y="0" width="24" height="14" stretch="1">
+			<h3 x="232" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h3>
-			<h4 x="223" y="0" width="24" height="14" stretch="1">
+			<h4 x="250" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h4>
-			<h5 x="238" y="0" width="24" height="14" stretch="1">
+			<h5 x="268" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h5>
 		</row_2>
@@ -154,34 +154,34 @@
 			<t1 x="78" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t1>
-			<t2 x="93" y="0" width="24" height="14" stretch="1">
+			<t2 x="96" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t2>
-			<t3 x="108" y="0" width="24" height="14" stretch="1">
+			<t3 x="114" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t3>
-			<t4 x="123" y="0" width="24" height="14" stretch="1">
+			<t4 x="132" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t4>
-			<t5 x="138" y="0" width="24" height="14" stretch="1">
+			<t5 x="150" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t5>
-			<t6 x="153" y="0" width="24" height="14" stretch="1">
+			<t6 x="168" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t6>
-			<h1 x="178" y="0" width="24" height="14" stretch="1">
+			<h1 x="196" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h1>
-			<h2 x="193" y="0" width="24" height="14" stretch="1">
+			<h2 x="214" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h2>
-			<h3 x="208" y="0" width="24" height="14" stretch="1">
+			<h3 x="232" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h3>
-			<h4 x="223" y="0" width="24" height="14" stretch="1">
+			<h4 x="250" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h4>
-			<h5 x="238" y="0" width="24" height="14" stretch="1">
+			<h5 x="268" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h5>
 		</row_3>
@@ -195,34 +195,34 @@
 			<t1 x="78" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t1>
-			<t2 x="93" y="0" width="24" height="14" stretch="1">
+			<t2 x="96" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t2>
-			<t3 x="108" y="0" width="24" height="14" stretch="1">
+			<t3 x="114" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t3>
-			<t4 x="123" y="0" width="24" height="14" stretch="1">
+			<t4 x="132" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t4>
-			<t5 x="138" y="0" width="24" height="14" stretch="1">
+			<t5 x="150" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t5>
-			<t6 x="153" y="0" width="24" height="14" stretch="1">
+			<t6 x="168" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</t6>
-			<h1 x="178" y="0" width="24" height="14" stretch="1">
+			<h1 x="196" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h1>
-			<h2 x="193" y="0" width="24" height="14" stretch="1">
+			<h2 x="214" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h2>
-			<h3 x="208" y="0" width="24" height="14" stretch="1">
+			<h3 x="232" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h3>
-			<h4 x="223" y="0" width="24" height="14" stretch="1">
+			<h4 x="250" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h4>
-			<h5 x="238" y="0" width="24" height="14" stretch="1">
+			<h5 x="268" y="0" width="24" height="14" stretch="1">
 				<text font="letterica16" r="175" g="175" b="175" a="255" align="l" complex_mode="1"/>
 			</h5>
 		</row_4>
