@@ -135,17 +135,10 @@ local function format_npc_armor_pct(armor)
 	return tostring(math.floor(armor * 100 + 0.5))
 end
 
-local function tier_pen_armor(tier, headshot)
-	return headshot and tier.head or tier.torso
-end
-
 -- Round label from GAMMA inv_name_short, with the leading calibre stripped
 -- (e.g. "5.45x39 HP" -> "HP", "7.62x51 mm NATO AP rounds" -> "AP", "12x76 AP slugs"
 -- -> "AP slugs"). We drop the leading calibre token(s) plus noise words so both the
 -- curated inv_name_short and the verbose inv_name fallback come out tidy.
-
--- Optional per-section overrides, checked first (fallback is the cleaner below).
-local AMMO_LABEL_OVERRIDE = {}
 
 -- Words that carry no ammo-type meaning and should be dropped from the label.
 local AMMO_NOISE_WORD = {
@@ -178,11 +171,6 @@ local function capitalize_words(str)
 end
 
 local function ammo_display_label(sec)
-	local override = AMMO_LABEL_OVERRIDE[sec]
-	if override then
-		return capitalize_words(override)
-	end
-
 	local name_id = ini_sys:r_string_ex(sec, "inv_name_short")
 	if not name_id or name_id == "" then
 		name_id = ini_sys:r_string_ex(sec, "inv_name")
@@ -224,15 +212,11 @@ local format_ammo_torso_damage_slash
 
 -- Caps of the optional damage stat row we inject. The engine paints stat values
 -- grey (clr_list p1); we recolor the label white after every tooltip update.
-local function active_damage_stat_gr()
+local function active_damage_stat_label()
 	if CONFIG.damage_stat == "off" then
 		return nil
 	end
-	return DAMAGE_STAT_BY_MODE[CONFIG.damage_stat]
-end
-
-local function active_damage_stat_label()
-	local gr = active_damage_stat_gr()
+	local gr = DAMAGE_STAT_BY_MODE[CONFIG.damage_stat]
 	if gr and gr.name then
 		return game.translate_string(gr.name)
 	end
@@ -378,13 +362,6 @@ end
 -- is hovered.
 local tracked_infos = setmetatable({}, { __mode = "k" })
 
-local function invalidate_tooltip_cache()
-	for info in pairs(tracked_infos) do
-		info.id = nil
-		info.section = nil
-	end
-end
-
 local function on_option_change()
 	-- All MCM/palette work is optional - the per-ammo breakdown must keep working
 	-- even if DORN common failed to load, so nothing here is allowed to hard-fail.
@@ -399,7 +376,10 @@ local function on_option_change()
 	end
 
 	apply_damage_stat()
-	invalidate_tooltip_cache()
+	for info in pairs(tracked_infos) do
+		info.id = nil
+		info.section = nil
+	end
 
 	log(string.format("show_damage_table=%s, damage_stat=%s, column_headers=%s",
 		tostring(CONFIG.show_damage_table), tostring(CONFIG.damage_stat), tostring(CONFIG.column_headers)))
@@ -550,7 +530,7 @@ local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, headshot, 
 	local bone_mult = headshot and BONE_DMG_HEAD or BONE_DMG_TORSO
 	local out = {}
 	for i, tier in ipairs(BRC_TIERS) do
-		local armor = tier_pen_armor(tier, headshot)
+		local armor = headshot and tier.head or tier.torso
 		local ap_scale = headshot and tier.head_ap or tier.torso_ap
 		out[i] = effective_dmg(
 			hit_power, k_hit, k_ap_ltx, air_res, armor,
@@ -949,39 +929,6 @@ local function add_details_damage_section(sheet, obj)
 	_st:SetAutoDelete(true)
 end
 
-local function weapon_wants_details_damage(obj)
-	if not obj or not CONFIG.show_damage_table then
-		return false
-	end
-
-	local sec = ini_sys:r_string_ex(obj:section(), "parent_section") or obj:section()
-	return IsWeapon(obj) and not IsItem("fake_ammo_wpn", sec)
-end
-
-local function init_damage_panel(self)
-	local dlg, fields = create_damage_fields(self.dialog)
-	if not dlg then
-		return
-	end
-
-	self.dorn_wpn_damage = dlg
-	self.dorn_wpn_fields = fields
-	dlg:Show(false)
-end
-
-local function populate_damage_panel(info, data)
-	local fields = info.dorn_wpn_fields
-	if not info.dorn_wpn_damage or not fields or not data then
-		return
-	end
-
-	local w = info.desc and info.desc:GetWidth()
-	if not populate_damage_fields(fields, data, w) then
-		info.dorn_wpn_damage:Show(false)
-		return
-	end
-end
-
 -- Reposition replacement-parts block (Parts in Tooltip mod) after we shift stats/ammo.
 local function sync_parts_layout(info, tail)
 	if not info.parts or not info.parts:IsShown() then
@@ -1065,7 +1012,14 @@ local function refresh_weapon_damage_panel(info, obj, sec)
 		return
 	end
 
-	populate_damage_panel(info, damage_data)
+	local fields = info.dorn_wpn_fields
+	if fields then
+		local w = info.desc and info.desc:GetWidth()
+		if not populate_damage_fields(fields, damage_data, w) then
+			info.dorn_wpn_damage:Show(false)
+			return
+		end
+	end
 	sync_damage_layout(info)
 end
 
@@ -1145,8 +1099,11 @@ local function itm_details_addtext_hook(self, xml, path, offset, txt)
 end
 
 local function itm_details_reset_hook(self, obj)
-	if weapon_wants_details_damage(obj) then
-		self.dorn_details_pending = obj
+	if obj and CONFIG.show_damage_table then
+		local sec = ini_sys:r_string_ex(obj:section(), "parent_section") or obj:section()
+		if IsWeapon(obj) and not IsItem("fake_ammo_wpn", sec) then
+			self.dorn_details_pending = obj
+		end
 	end
 
 	if base_itm_details_reset then
@@ -1186,7 +1143,12 @@ local function uiinfo_init_hook(self, owner, delay)
 		return
 	end
 
-	init_damage_panel(self)
+	local dlg, fields = create_damage_fields(self.dialog)
+	if dlg then
+		self.dorn_wpn_damage = dlg
+		self.dorn_wpn_fields = fields
+		dlg:Show(false)
+	end
 end
 
 local function uiinfo_update_hook(self, obj, sec, flags)
