@@ -35,4 +35,5 @@ Under **Dorn's Weapon Tooltip** in MCM (Info tab explains columns):
 - WIP — calculations may be wrong on some weapons/ammo.
 
 ## See my other mods here:
+
 https://github.com/JoshuaCarter/GAMMA-Mods
