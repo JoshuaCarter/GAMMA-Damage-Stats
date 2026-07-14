@@ -1,4 +1,4 @@
-# Dorn's Tooltip Weapon Damage v0.1.8
+# Dorn's Weapon Tooltip Damage v0.1.9
 
 Adds weapon damage info to weapon tooltips in **S.T.A.L.K.E.R. G.A.M.M.A.**
 
@@ -11,7 +11,7 @@ Hover a weapon for a **DAMAGE** table under the description:
 - **vs Torso / vs Head** — estimated 20m damage vs armor tiers (friendly NPC armor labels)
 - Color highlights for effectiveness at a glance
 
-Optional stat row: **Hit Power** (% base power) or **Damage Per Ammo** (no-armor column values, table order).
+With **enhanced weapon stats** enabled (MCM), tooltips also show Hit Power, raw Damage Per Ammo, and real values appended to Accuracy, Handling, Reliability, Recoil, and Muzzle Velocity.
 
 <img width="523" height="371" alt="Details" src="https://github.com/user-attachments/assets/58f594ac-0683-4d68-9f17-ee3e2b5ff8f2" />
 <img width="722" height="1081" alt="Tooltip" src="https://github.com/user-attachments/assets/afb6609d-7232-44ce-b395-f2bd05997856" />
@@ -21,8 +21,7 @@ Optional stat row: **Hit Power** (% base power) or **Damage Per Ammo** (no-armor
 Under **Dorn's Weapon Tooltip** in MCM (Info tab explains columns):
 
 - **Show damage table** — On / Off
-- **Weapon damage stat row** — Hit Power / Damage Per Ammo / Off
-- **Damage column headers** — BRC tier labels / raw NPC armor %
+- **Show enhanced weapon stats** — Hit Power, raw Damage Per Ammo, and real stat appends
 
 ## Installation
 

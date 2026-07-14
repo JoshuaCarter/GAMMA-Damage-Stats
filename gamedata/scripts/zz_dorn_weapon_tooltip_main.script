@@ -1073,13 +1073,6 @@ end
 -- falls through to the stock implementation.
 local base_get_stats_xml
 
-local function is_enhanced_custom_stat(grp)
-	if not CONFIG.show_enhanced_weapon_stats or not grp or not grp.name then
-		return false
-	end
-	return grp.name == "ui_dorn_wpn_hit_power" or grp.name == "ui_dorn_wpn_ammo_torso"
-end
-
 local function build_white_stat_xml(handler, obj, sec, gr, stat)
 	local value, nclr
 
@@ -1092,10 +1085,6 @@ local function build_white_stat_xml(handler, obj, sec, gr, stat)
 
 	if not value then
 		return
-	end
-
-	if dorn_weapon_tooltip_stats and dorn_weapon_tooltip_stats.append_to_value_string then
-		value = dorn_weapon_tooltip_stats.append_to_value_string(value, gr.name, obj, sec)
 	end
 
 	local st = STAT_XML:InitStatic("item_info:stats_box", handler)
@@ -1117,22 +1106,14 @@ local function build_white_stat_xml(handler, obj, sec, gr, stat)
 	return st
 end
 
-local function append_weapon_stat_value(value, gr, obj, sec)
-	if not value or not gr or not gr.name then
-		return value
-	end
-	if dorn_weapon_tooltip_stats and dorn_weapon_tooltip_stats.append_to_value_string then
-		return dorn_weapon_tooltip_stats.append_to_value_string(value, gr.name, obj, sec)
-	end
-	return value
-end
-
 local function build_weapon_stat_xml(handler, obj, sec, gr, stat)
 	local value, nclr = utils_ui.get_stats_string_value(obj, sec, gr, stat)
 	if not value then
 		return nil
 	end
-	value = append_weapon_stat_value(value, gr, obj, sec)
+	if dorn_weapon_tooltip_stats and dorn_weapon_tooltip_stats.append_to_value_string then
+		value = dorn_weapon_tooltip_stats.append_to_value_string(value, gr.name, obj, sec)
+	end
 
 	local st = STAT_XML:InitStatic("item_info:stats_box", handler)
 	local st_icon = STAT_XML:InitStatic("item_info:stats_box:icon", st)
@@ -1155,7 +1136,8 @@ local function get_stats_xml_hook(handler, obj, sec, gr, stat)
 		grp = utils_ui.stats_table and utils_ui.stats_table[grp]
 	end
 
-	if grp and not grp.track and is_enhanced_custom_stat(grp) then
+	if grp and not grp.track and CONFIG.show_enhanced_weapon_stats and grp.name
+		and (grp.name == "ui_dorn_wpn_hit_power" or grp.name == "ui_dorn_wpn_ammo_torso") then
 		local ok, st = pcall(build_white_stat_xml, handler, obj, sec, grp, stat)
 		if ok and st then
 			return st
