@@ -25,6 +25,17 @@ function on_mcm_load()
 						hint = "dorn_weapon_tooltip_show_damage_table",
 					},
 					{
+						id = "column_headers",
+						type = "list",
+						val = 0,
+						def = "brc",
+						hint = "dorn_weapon_tooltip_column_headers",
+						content = {
+							{ "brc", "brc" },
+							{ "npc", "npc" },
+						},
+					},
+					{
 						id = "show_enhanced_weapon_stats",
 						type = "check",
 						val = 1,
@@ -39,34 +50,36 @@ function on_mcm_load()
 				text = "ui_mcm_dorn_weapon_tooltip_info_section",
 				gr = MCM.with_header({
 					{
-						id = "overview",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_overview",
+						id = "damage_table",
+						sh = true,
+						text = "ui_mcm_dorn_weapon_tooltip_hdr_damage_table",
+						gr = {
+							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_damage_table" },
+						},
 					},
 					{
-						id = "enhanced_stats_info",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_enhanced_stats",
+						id = "column_headers",
+						sh = true,
+						text = "ui_mcm_dorn_weapon_tooltip_hdr_column_headers",
+						gr = {
+							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_column_headers" },
+						},
 					},
 					{
-						id = "armor_columns",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_armor_columns",
+						id = "enhanced_stats",
+						sh = true,
+						text = "ui_mcm_dorn_weapon_tooltip_hdr_enhanced_stats",
+						gr = {
+							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_enhanced_stats" },
+						},
 					},
 					{
-						id = "torso_tiers",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_torso_tiers",
-					},
-					{
-						id = "head_tiers",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_head_tiers",
-					},
-					{
-						id = "damage_calc",
-						type = "desc",
-						text = "ui_mcm_dorn_weapon_tooltip_info_damage_calc",
+						id = "table_math",
+						sh = true,
+						text = "ui_mcm_dorn_weapon_tooltip_hdr_table_math",
+						gr = {
+							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_table_math" },
+						},
 					},
 				}),
 			},

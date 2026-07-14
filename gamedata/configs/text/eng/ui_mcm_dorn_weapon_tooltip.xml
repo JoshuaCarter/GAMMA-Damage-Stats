@@ -10,26 +10,32 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_info_section">
 		<text>Info</text>
 	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_overview">
-		<text>Weapon tooltips now show a DAMAGE panel below the description, the columns are:\n\n- Type: Shows an ammo type available to this weapon.\n- AP: Shows the AP value of the ammo.\n- vs Torso (BRC): Show how much damage this weapon + ammo will do to an NPC with an armor value equivalent to the shown BRC value.\n- vs Head (BRC): Same but vs the head.\n\nDamage numbers are colored grey to green according to how well they penetrate that BRC value.</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_enhanced_stats">
-		<text>Enhanced weapon stats (Main settings) adds real values to the stock stat rows and two custom rows:\n\n- Hit Power: weapon hit_power as % per pellet, no ammo modifier\n- Damage Per Ammo: raw hit_power x k_hit x pellets per ammo type (no range, no armor), slash-separated in table ammo order\n- Accuracy, Handling, Reliability, Recoil, Muzzle Velocity: real values appended after the stock bar/text\n\nDegraded ammo is ignored for the damage stat rows.</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_armor_columns">
-		<text>Under the hood, every damage value uses hidden NPC bone-armor values (spine for torso, head bone for headshots), not the BRC values you see on armor. The BRC values are used to make things easier to understand.</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_torso_tiers">
-		<text>What each vs Torso BRC column roughly matches in GAMMA:\n- 10 - Novice: leather jacket, no armor (stalker_novice)\n- 20 - Trainee: light loner jacket (stalker_trainee)\n- 30 - Professional: LCS vest / PS5-M (stalker_professional)\n- 40 - Veteran: PS5 suit / soldier vest (stalker_veteran)\n- 50 - Master: SKAT-9 / Berill heavy armor (stalker_master)\n- 60 - Legend: exoskeleton (stalker_legend)</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_head_tiers">
-		<text>What each vs Head BRC column roughly matches:\n- 10 - Respirator / gas mask (actor_helm_respirator)\n- 20 - Screen helmet (actor_helm_screen)\n- 30 - Hard hat / ZSH (actor_helm_hardhat)\n- 35 - Battle helmet (actor_helm_battle)\n- 45 - Exo / Spartan helm (actor_helm_spartan)</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_calc">
-		<text>How each damage cell is calculated (at 20 meters, current difficulty):\n\n1. dist = 1 + 20/200 x (k_air x 0.5 / (1 - k_air + 0.1))\n2. AP = k_ap x 10 (+ 0.04 on headshots) x tier_ap_scale / dist x difficulty x 0.80\n3. power = hit_power / dist x k_hit x bone_mult x tier_ap_scale x 1.1 x difficulty x pellets\n   (bone_mult = 0.9 torso, 3.65 head; pellets = buck_shot for shotguns, else 1)\n4. If AP >= tier armor: damage = power x 100\n   Else: damage = power x tier_chip x 100\n\nDifficulty multipliers: Scout/Stalker 1.30, Veteran 1.05, Master 0.90.\n\nNOT INCLUDED: artefacts, ballistic plates, silencers, barrel wear, range other than 20 m, or flat BR protection. For broader GAMMA weapon mechanics see stalker-gamma-db.com.</text>
-	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_development_section">
 		<text>Development</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_hdr_damage_table">
+		<text>Damage table</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_table">
+		<text>Shown below the weapon description when the damage table toggle is on.\n\n%c[d_blue]Type%c[default] — ammo label (calibre stripped from inv_name_short).\n%c[d_blue]AP%c[default] — k_ap x 1000, same scale as the ammo card.\n%c[d_blue]vs Torso / vs Head%c[default] — estimated damage at 20 m vs each armor tier.\n\nCell color runs grey to green by how well that round penetrates that tier. Degraded ammo is omitted.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_hdr_column_headers">
+		<text>Column headers</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_info_column_headers">
+		<text>%c[d_blue]Player BRC%c[default] shows friendly tier numbers (10-60).\n%c[d_blue]NPC armor%%%c[default] shows the hidden bone-armor values used in the damage math.\n\nLabels only — each column still uses its matched NPC armor profile.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_hdr_enhanced_stats">
+		<text>Enhanced weapon stats</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_info_enhanced_stats">
+		<text>Adds two custom stat rows plus real values appended to the existing GAMMA stat percentages ( · separator). Assumes 100%% weapon condition, default ammo, no attachments unless noted. Degraded ammo is skipped for the damage rows.\n\n%c[d_blue]Hit Power%c[default]\nNew stat row. Weapon hit_power as %% per pellet (x100). No ammo k_hit; pellet count is not multiplied here.\n\n%c[d_blue]Damage Per Ammo%c[default]\nNew stat row. Raw hit_power x k_hit x pellets per compatible ammo type, same order as the damage table (e.g. 45/38/22).\n\n%c[d_blue]Accuracy%c[default]\nAppended to the existing value. ADS standing-still cone half-angle from fire_dispersion_base (e.g. 0.35°). Fixed per shot; does not widen during full auto.\n\n%c[d_blue]Handling%c[default]\nAppended to the existing value. Hip-fire spread while moving: walk and run standing (e.g. walk 2.1° · run 5.2° hip). ADS standing still is covered by Accuracy.\n\n%c[d_blue]Reliability%c[default]\nAppended to the existing value. Shots to lose 10%% condition (best ammo to worst ammo with silencer wear x1.25), e.g. 27-108. Condition loss per shot, not jam odds.\n\n%c[d_blue]Recoil Control%c[default]\nAppended to the existing value. ADS camera kick per shot: first-shot angle, then the shot number where kick reaches 1° or more (e.g. 0.5° @1 → 1.0° @12).\n\n%c[d_blue]Muzzle Velocity%c[default]\nAppended to the existing value. Bullet drop at 100 m from physics speed (bullet_speed x k_bullet_speed), e.g. -0.1m @100m.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_hdr_table_math">
+		<text>Table damage math</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_info_table_math">
+		<text>Every table damage value uses hidden NPC bone-armor (spine for torso, head bone for headshots), not the BRC labels on player armor. BRC numbers are a readable shorthand for those tiers.\n\n%c[d_blue]vs Torso BRC columns roughly match in GAMMA:%c[default]\n10 — Novice (leather jacket, stalker_novice)\n20 — Trainee (light loner jacket, stalker_trainee)\n30 — Professional (LCS / PS5-M, stalker_professional)\n40 — Veteran (PS5 suit / soldier vest, stalker_veteran)\n50 — Master (SKAT-9 / Berill, stalker_master)\n60 — Legend (exoskeleton, stalker_legend)\n\n%c[d_blue]vs Head BRC columns roughly match:%c[default]\n10 — Respirator / gas mask (actor_helm_respirator)\n20 — Screen helmet (actor_helm_screen)\n30 — Hard hat / ZSH (actor_helm_hardhat)\n35 — Battle helmet (actor_helm_battle)\n45 — Exo / Spartan helm (actor_helm_spartan)\n\n%c[d_blue]Table cell formula (20 m, current difficulty):%c[default]\n1. dist = 1 + 20/200 x (k_air x 0.5 / (1 - k_air + 0.1))\n2. AP = k_ap x 10 (+ 0.04 head) x tier_ap_scale / dist x difficulty x 0.80\n3. power = hit_power / dist x k_hit x bone_mult x tier_ap_scale x 1.1 x difficulty x pellets (bone_mult 0.9 torso, 3.65 head; pellets = buck_shot or 1)\n4. If AP >= tier armor: damage = power x 100, else damage = power x tier_chip x 100\n\nDifficulty: Scout/Stalker 1.30, Veteran 1.05, Master 0.90.\n\n%c[d_orange]NOT INCLUDED:%c[default] artefacts, plates, silencers, barrel wear, range other than 20 m, flat BR protection.</text>
 	</string>
 	<string id="ui_dorn_wpn_hit_power">
 		<text>Hit Power</text>
@@ -39,6 +45,15 @@
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_damage_table">
 		<text>Show damage table</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_column_headers">
+		<text>Damage column headers</text>
+	</string>
+	<string id="dorn_weapon_tooltip_main_column_headers_lst_brc">
+		<text>Player BRC (tier)</text>
+	</string>
+	<string id="dorn_weapon_tooltip_main_column_headers_lst_npc">
+		<text>NPC armor %</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_enhanced_weapon_stats">
 		<text>Show enhanced weapon stats</text>
