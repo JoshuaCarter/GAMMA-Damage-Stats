@@ -17,66 +17,86 @@
 		<text>Damage table</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_table">
-		<text>A table showing how much damage this weapon does with each ammo type vs different bone/armor combinations.
-			\nAssumes 20m range, 100% weapon condition, and doesn't account for attachments, artefacts, etc.
+		<text>A table showing how much damage this weapon does with each ammo type vs different body parts and armor values.
+			\nAssumes 20m range, 100% weapon condition, and doesn't account for other factors which affect damage, such as barrel condition, silencers, artefacts, etc.
 			\n
-			\n%c[d_blue]Columns:\n
-			%c[d_blue]Type:%c[default] Ammo type used for damage calculations on this row.
-			\n%c[d_blue]AP:%c[default] Armor penetration colored grey to yellow by how well it punches through the listed armor values.
-			\n%c[d_blue]vs Torso X:%c[default] Damage vs torso with X armor. Colored grey to green by how close it is to the max damage for this weapon+ammo combination.
-			\n%c[d_blue]vs Head X:%c[default] Same as torso, but for headshots (inc 3.65x damage bonus).
+			\n%c[d_blue]Columns%c[default] :
+			\n- %c[d_blue]Type%c[default]: Ammo type used for damage calculations on this row.
+			\n- %c[d_blue]AP%c[default]: Armor penetration colored %c[dark_gray]grey%c[default] -> %c[d_yellow]yellow%c[default] by how well it punches through the listed armor values.
+			\n- %c[d_blue]vs Torso X%c[default]: Damage vs torso with X armor. Colored %c[dark_gray]grey%c[default] -> %c[d_green]green%c[default] by how close it is to the max damage for this weapon+ammo combination.
+			\n- %c[d_blue]vs Head X%c[default]: Same as torso, but for headshots (includes 3.65x damage bonus).
 			\n
-			\n%c[d_blue]Notes:\n
-			%c[default]- Numbers are first-shot estimates. If AP fails to penetrate, you get reduced chip damage instead of full damage. Once armor is worn down in a real fight you will do more - treat these mainly as your opening salvo.
-			\n- BRC labels (10-60) are a player-friendly shorthand. Damage always uses hidden NPC bone-armor values underneath.
-			\n- Not included: artefacts, ballistic plates, silencers, barrel wear, flat BR protection, or ranges other than 20 m.
+			\n%c[d_blue]Notes%c[default]:
+			\n- Damage numbers are mainly a refletion of your opening salvo, as once an armor segment (head/torso+arms/legs) is broken, you will do near-full damage to that segment regardless of AP.
+			\n- BRC values are just a more familiar way to represent the raw NPC armor values (which you can toggle on if you prefer).
 			\n
-			\n%c[d_blue]Math (20 m, current difficulty):\n
-			%c[default]1. range_factor = 1 + 20/200 x (k_air x 0.5 / (1 - k_air + 0.1))
+			\n%c[d_blue]Math (20m range, current difficulty)%c[default]:
+			\n1. range_factor = 1 + 0.1 x (k_air x 0.5 / (1 - k_air + 0.1))
 			\n2. combat_AP = k_ap x 10 (+ 0.04 on head) x tier_ap_scale / range_factor x difficulty x 0.80
 			\n3. power = hit_power / range_factor x ammo_k_hit x bone_mult x tier_ap_scale x 1.1 x difficulty x pellets
-			\n   (bone_mult 0.9 torso / 3.65 head; pellets = buck_shot or 1)
-			\n4. If combat_AP >= armor: damage = power x 100, else damage = power x chip_fraction x 100
-			\nDifficulty: Scout/Stalker 1.30, Veteran 1.05, Master 0.90.</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_hdr_column_headers">
-		<text>Column headers</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_info_column_headers">
-		<text>Chooses how armor tiers are labeled on the damage table. The damage math itself never changes - only the header text.
-			\n
-			\n%c[d_blue]Player BRC:%c[default] Friendly tier numbers (torso 10-60, head 10-45). Matches the BRC scale on player armor and ammo cards.
-			\n%c[d_blue]NPC armor:%c[default] Real bone-armor values used in the damage formula (as percentages).
-			\n
-			\n%c[d_blue]Notes:\n
-			%c[default]- Each column is still the same armor profile either way. BRC is just easier to read.
-			\n
-			\n%c[d_blue]Rough BRC matches in GAMMA:\n
-			%c[default]Torso: 10 Novice, 20 Trainee, 30 Professional, 40 Veteran, 50 Master, 60 Legend.
-			\nHead: 10 Respirator, 20 Screen helm, 30 Hardhat/ZSH, 35 Battle helm, 45 Exo/Spartan.</text>
+			\n4. If combat_AP >= armor: damage = power x 100, else damage = power x chip_fraction x 100</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_hdr_enhanced_stats">
 		<text>Enhanced weapon stats</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_info_enhanced_stats">
-		<text>Adds two new stat rows, and appends real values after the existing GAMMA percentage stats. Assumes 100% weapon condition, default ammo, no attachments unless noted. Degraded ammo is skipped for damage rows.
+		<text>Adds extra useful stats to the normal weapon stats section.
 			\n
-			\n%c[d_blue]Hit Power:%c[default] New row. Weapon base hit_power per pellet as a percentage (x100). Ignores ammo and pellet count.
-			\n%c[d_blue]Damage Per Ammo:%c[default] New row. Raw damage per ammo type in table order (e.g. 45/38/22). No range or armor.
-			\n%c[d_blue]Accuracy:%c[default] Appended. ADS standing-still cone half-angle in degrees (e.g. 0.35 deg). Fixed per shot.
-			\n%c[d_blue]Handling:%c[default] Appended. Hip-fire spread while walking and running (e.g. walk 2.1 deg / run 5.2 deg hip).
-			\n%c[d_blue]Reliability:%c[default] Appended. Shots to lose 10% condition, best-to-worst ammo with silencer wear (e.g. 27-108).
-			\n%c[d_blue]Recoil Control:%c[default] Appended. ADS camera kick: first-shot angle, then which shot reaches ~1 deg kick.
-			\n%c[d_blue]Muzzle Velocity:%c[default] Appended. Bullet drop at 100 m from physics speed (e.g. -0.1m @100m).
+			\n%c[d_red]NEW STAT ROWS ADDED%c[default]:
 			\n
-			\n%c[d_blue]Notes / math:\n
-			%c[default]- Hit Power = weapon hit_power x 100 (no ammo k_hit, no pellets).
-			\n- Damage Per Ammo = hit_power x ammo_k_hit x pellets x 100.
-			\n- Accuracy = fire_dispersion_base (degrees).
-			\n- Handling = fire_dispersion_base scaled by actor PDM walk/run hip multipliers.
-			\n- Reliability = floor(0.10 / (condition_shot_dec x ammo_impair)), worst end also x1.25 for silencer wear.
-			\n- Recoil = zoom_cam_dispersion, then shot N where kick hits ~1 deg using zoom_cam_dispersion_inc.
-			\n- Drop at 100 m = gravity x 100^2 / (2 x (bullet_speed x ammo_k_bullet_speed)^2).</text>
+			\n%c[d_green]Hit Power:%c[default]
+			\n- The % of base ammo damage that this weapon inflicts (i.e. not all weapons that shoot 9mm do the same damage).
+			\n
+			\n%c[d_green]Damage Per Ammo:%c[default]
+			\n- Raw damage per ammo type in table order (e.g. 45/38/22) without any other factors mixed in.
+			\n
+			\n%c[d_red]NEW VALUES APPENDED TO EXISTING ROWS%c[default]:
+			\n
+			\n%c[d_blue]Accuracy%c[default] + %c[d_green]Base Spread Degrees%c[default]
+			\n- Standing ADS bullet dispersion in degrees (e.g. 0.35 deg means that final trajectory of the projectile can be up to 0.35 degrees off center).
+			\n
+			\n%c[d_blue]Handling%c[default] | %c[d_green]Movement Spread Degrees%c[default]
+			\n- Hip-fire spread while walking and running (e.g. walk 2.1 deg / run 5.2 deg). This is added to base spread, but isn't applied while ADS.
+			\n
+			\n%c[d_blue]Reliability%c[default] | %c[d_green]Average Barrel Wear%c[default]
+			\n- How much barrel condition is worn down per shot. Value is average of each ammo type with and without silencer.
+			\n
+			\n%c[d_blue]Recoil Control%c[default] | %c[d_green]Burst Control%c[default]
+			\n- How many consecutive shots it takes to kick the cemera angle vertically by 3 degrees.
+			\n
+			\n%c[d_blue]Muzzle Velocity%c[default] | %c[d_green]Bullet Drop%c[default]
+			\n- How far down a bullet will drop at 200m.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_hdr_damage_notes">
+		<text>Other Useful Information</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_notes">
+		<text>%c[d_blue]Silencers%c[default] are OP, they give you:
+			\n- +7% damage and AP
+			\n- +3% bullet speed
+			\n- Better dispersion/recoil
+			\n- x1.25 more weapon wear per shot.
+			\n
+			\n%c[d_blue]NPC body parts%c[default] take different amounts of damage:
+			\n- Head: 365%
+			\n- Jaw: 300%
+			\n- Neck: 270%
+			\n- Torso/Pelvis: 90%
+			\n- Upper arms: 70%
+			\n- Forearms: 60%
+			\n- Thighs: 55%
+			\n- Calves: 45%
+			\n- Hands: 40%
+			\n- Feet: 30%
+			\n
+			\n%c[d_blue]NPC ranks%c[default] very roughly align to these torso BRC values in the table:
+			\n- Torso: 10 Novice, 20 Trainee, 30 Professional, 40 Veteran, 50 Master, 60 Legend
+			\n
+			\n%c[d_blue]Difficulty%c[default] multiplies damage and AP:
+			\n- Stalker 130%, Veteran 105%, Master 90%
+			\n
+			\n%c[d_blue]NPC health%c[default] is one shared pool (not split across limbs).
+			\n- Every stalker has the same max HP, but Sin take ~70% less damage, zombies ~40% less, ISG ~30% less, meaning they effectively have more health than other stalkers.</text>
 	</string>
 	<string id="ui_dorn_wpn_hit_power">
 		<text>Hit Power</text>
@@ -100,7 +120,7 @@
 		<text>Show enhanced weapon stats</text>
 	</string>
 	<string id="dorn_weapon_tooltip_show_enhanced_weapon_stats_desc">
-		<text>Adds Hit Power and raw Damage Per Ammo stat rows, plus real values on Accuracy, Handling, Reliability, Recoil, and Muzzle Velocity.</text>
+		<text>Adds rows to show Hit Power and raw Damage Per Ammo, plus extra stats on Accuracy, Handling, Reliability, Recoil, and Muzzle Velocity.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_debug_log">
 		<text>Enable debug logging</text>
