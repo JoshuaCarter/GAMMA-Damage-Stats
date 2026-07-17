@@ -50,36 +50,36 @@ function on_mcm_load()
 				text = "ui_mcm_dorn_weapon_tooltip_info_section",
 				gr = MCM.with_header({
 					{
-						id = "damage_table",
-						sh = true,
+						id = "hdr_damage_table",
+						type = "title",
 						text = "ui_mcm_dorn_weapon_tooltip_hdr_damage_table",
-						gr = {
-							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_damage_table" },
-						},
 					},
 					{
-						id = "column_headers",
-						sh = true,
+						id = "damage_table_info",
+						type = "desc",
+						text = "ui_mcm_dorn_weapon_tooltip_info_damage_table",
+					},
+					{ id = "line_damage_table", type = "line" },
+					{
+						id = "hdr_column_headers",
+						type = "title",
 						text = "ui_mcm_dorn_weapon_tooltip_hdr_column_headers",
-						gr = {
-							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_column_headers" },
-						},
 					},
 					{
-						id = "enhanced_stats",
-						sh = true,
+						id = "column_headers_info",
+						type = "desc",
+						text = "ui_mcm_dorn_weapon_tooltip_info_column_headers",
+					},
+					{ id = "line_column_headers", type = "line" },
+					{
+						id = "hdr_enhanced_stats",
+						type = "title",
 						text = "ui_mcm_dorn_weapon_tooltip_hdr_enhanced_stats",
-						gr = {
-							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_enhanced_stats" },
-						},
 					},
 					{
-						id = "table_math",
-						sh = true,
-						text = "ui_mcm_dorn_weapon_tooltip_hdr_table_math",
-						gr = {
-							{ id = "desc", type = "desc", text = "ui_mcm_dorn_weapon_tooltip_info_table_math" },
-						},
+						id = "enhanced_stats_info",
+						type = "desc",
+						text = "ui_mcm_dorn_weapon_tooltip_info_enhanced_stats",
 					},
 				}),
 			},
