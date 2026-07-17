@@ -81,12 +81,13 @@ local NUM_TIERS = #BRC_TIERS
 local NUM_HEAD_TIERS = NUM_TIERS - 1  -- skip brc_head 0 (same practical result as 10)
 local HEAD_TIER_START = 2
 
--- GAMMA uses three gameplay difficulties (gdiff_1..3 / diff_game.type 1..3).
--- grok_bo also defines [4] for legacy hardcore; GAMMA does not expose it.
+-- grok_bo difficulty_multiplier keyed by diff_game.type (ZCP Easy/Medium/Hard = 1/2/3).
+-- Type 4 (0.80) exists in GBO but is not offered in GAMMA character creation.
 local DIFFICULTY_MULT = {
-	[1] = 1.30,
-	[2] = 1.05,
-	[3] = 0.90,
+	[1] = 1.30, -- Easy
+	[2] = 1.05, -- Medium
+	[3] = 0.90, -- Hard
+	[4] = 0.80, -- unused Hardcore leftover
 }
 
 local BONE_DMG_TORSO = 0.9   -- bip01_spine (grok_bo stalker_damage)
@@ -284,7 +285,7 @@ local HIT_POWER_STAT = {
 	},
 }
 
--- Max raw damage (hit_power x k_hit x pellets) per ammo type, table order: 45/38/22/18
+-- Max damage (hit_power x k_hit x pellets x difficulty) per ammo type, table order.
 local RAW_AMMO_DAMAGE_STAT = {
 	index = 302,
 	typ = "float",
@@ -692,8 +693,8 @@ local function build_ammo_damage_rows(obj, sec)
 	}
 end
 
--- Per-ammo raw damage (hit_power x k_hit x pellets, no range or armor), same
--- ammo order as the damage table.
+-- Per-ammo damage (hit_power x k_hit x pellets x current difficulty), same
+-- ammo order as the damage table. No range or armor.
 format_raw_ammo_damage_slash = function(obj, sec)
 	local rounds = collect_sorted_ammo_rounds(obj, sec, nil)
 	if not rounds then
@@ -705,9 +706,10 @@ format_raw_ammo_damage_slash = function(obj, sec)
 		return nil
 	end
 
+	local diff_mult = get_difficulty_mult()
 	local parts = {}
 	for _, r in ipairs(rounds) do
-		local dmg = math.floor(hit_power * r.k_hit * r.pellets * DAMAGE_SCALE + 0.5)
+		local dmg = math.floor(hit_power * r.k_hit * r.pellets * diff_mult * DAMAGE_SCALE + 0.5)
 		parts[#parts + 1] = tostring(dmg)
 	end
 

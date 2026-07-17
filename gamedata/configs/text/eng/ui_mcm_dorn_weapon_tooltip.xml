@@ -17,12 +17,14 @@
 		<text>Damage table</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_table">
-		<text>A table showing how much damage this weapon does with each ammo type vs different body parts and armor values.
+		<text>All damage numbers always include your current difficulty modifier, and will change if you change difficulty. GAMMA difficulties: Rookie 130%, Stalker 105%, Veteran 90%.
+			\n
+			\nA table showing how much damage this weapon does with each ammo type vs different body parts and armor values.
 			\nAssumes 20m range, 100% weapon condition, and doesn't account for other factors which affect damage, such as barrel condition, silencers, artefacts, etc.
 			\n
 			\n%c[d_blue]Columns%c[default] :
 			\n- %c[d_blue]Type%c[default]: Ammo type used for damage calculations on this row.
-			\n- %c[d_blue]AP%c[default]: Armor penetration colored %c[dark_gray]grey%c[default] -> %c[d_yellow]yellow%c[default] by how well it punches through the listed armor values.
+			\n- %c[d_blue]AP%c[default]: Armor penetration colored %c[dark_gray]grey%c[default] -> %c[yellow]yellow%c[default] by how well it punches through the listed armor values.
 			\n- %c[d_blue]vs Torso X%c[default]: Damage vs torso with X armor. Colored %c[dark_gray]grey%c[default] -> %c[d_green]green%c[default] by how close it is to the max damage for this weapon+ammo combination.
 			\n- %c[d_blue]vs Head X%c[default]: Same as torso, but for headshots (includes 3.65x damage bonus).
 			\n
@@ -30,7 +32,7 @@
 			\n- Damage numbers are mainly a refletion of your opening salvo, as once an armor segment (head/torso+arms/legs) is broken, you will do near-full damage to that segment regardless of AP.
 			\n- BRC values are just a more familiar way to represent the raw NPC armor values (which you can toggle on if you prefer).
 			\n
-			\n%c[d_blue]Math (20m range, current difficulty)%c[default]:
+			\n%c[d_blue]Math (20m range)%c[default]:
 			\n1. range_factor = 1 + 0.1 x (k_air x 0.5 / (1 - k_air + 0.1))
 			\n2. combat_AP = k_ap x 10 (+ 0.04 on head) x tier_ap_scale / range_factor x difficulty x 0.80
 			\n3. power = hit_power / range_factor x ammo_k_hit x bone_mult x tier_ap_scale x 1.1 x difficulty x pellets
@@ -47,35 +49,34 @@
 			\n%c[d_green]Hit Power:%c[default]
 			\n- The % of base ammo damage that this weapon inflicts (i.e. not all weapons that shoot 9mm do the same damage).
 			\n
-			\n%c[d_green]Damage Per Ammo:%c[default]
-			\n- Raw damage per ammo type in table order (e.g. 45/38/22) without any other factors mixed in.
+			\n%c[d_green]Raw Damage:%c[default]
+			\n- Ammo damage (hit power x ammo k_hit x pellets) in the same order as the table, without range or target armor factored in.
 			\n
 			\n%c[d_red]NEW VALUES APPENDED TO EXISTING ROWS%c[default]:
 			\n
 			\n%c[d_blue]Accuracy%c[default] + %c[d_green]Base Spread Degrees%c[default]
-			\n- Standing ADS bullet dispersion in degrees (e.g. 0.35 deg means that final trajectory of the projectile can be up to 0.35 degrees off center).
+			\n- Standing ADS bullet dispersion in degrees (e.g. 0.35 deg means that final trajectory of the projectile can be up to 0.35 degrees off center). Assumes 100% weapon condition.
 			\n
-			\n%c[d_blue]Handling%c[default] | %c[d_green]Movement Spread Degrees%c[default]
+			\n%c[d_blue]Handling%c[default] + %c[d_green]Movement Spread Degrees%c[default]
 			\n- Hip-fire spread while walking and running (e.g. walk 2.1 deg / run 5.2 deg). This is added to base spread, but isn't applied while ADS.
 			\n
-			\n%c[d_blue]Reliability%c[default] | %c[d_green]Average Barrel Wear%c[default]
-			\n- How much barrel condition is worn down per shot. Value is average of each ammo type with and without silencer.
+			\n%c[d_blue]Reliability%c[default] + %c[d_green]Average Weapon Wear%c[default]
+			\n- How much weapon condition is worn down per shot. Value is average of each ammo type.
 			\n
-			\n%c[d_blue]Recoil Control%c[default] | %c[d_green]Burst Control%c[default]
-			\n- How many consecutive shots it takes to kick the cemera angle vertically by 3 degrees.
-			\n
-			\n%c[d_blue]Muzzle Velocity%c[default] | %c[d_green]Bullet Drop%c[default]
+			\n%c[d_blue]Recoil Control%c[default] + %c[d_green]Burst Control%c[default]
+			\n- How many consecutive ADS shots (at max fire rate) it takes for the camera to climb 3 degrees.
+			\n%c[d_blue]Muzzle Velocity%c[default] + %c[d_green]Bullet Drop%c[default]
 			\n- How far down a bullet will drop at 200m.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_hdr_damage_notes">
 		<text>Other Useful Information</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_info_damage_notes">
-		<text>%c[d_blue]Silencers%c[default] are OP, they give you:
-			\n- +7% damage and AP
-			\n- +3% bullet speed
-			\n- Better dispersion/recoil
-			\n- x1.25 more weapon wear per shot.
+		<text>%c[d_blue]Silencers%c[default] (current GAMMA):
+			\n- +7% damage
+			\n- +7% AP
+			\n- ~18% less camera recoil
+			\n- -10% muzzle velocity
 			\n
 			\n%c[d_blue]NPC body parts%c[default] take different amounts of damage:
 			\n- Head: 365%
@@ -89,20 +90,28 @@
 			\n- Hands: 40%
 			\n- Feet: 30%
 			\n
-			\n%c[d_blue]NPC ranks%c[default] very roughly align to these torso BRC values in the table:
-			\n- Torso: 10 Novice, 20 Trainee, 30 Professional, 40 Veteran, 50 Master, 60 Legend
-			\n
-			\n%c[d_blue]Difficulty%c[default] multiplies damage and AP:
-			\n- Stalker 130%, Veteran 105%, Master 90%
+			\n%c[d_blue]BRC columns%c[default] roughly match these common visual outfits (closest GBO armor class):
+			\n- 10: trenchcoat, novice jacket, bandit leather
+			\n- 20: army uniform, SSP; Sunrise sits a bit above this
+			\n- 30: LCS, PS5, armored trenchcoat
+			\n- 40: Exolight (Berill / SEVA sit a bit below this)
+			\n- 50: SKAT, heavy military
+			\n- 60: late Freedom / Duty / Merc heavy suits (full Exoskeleton sits above the table)
 			\n
 			\n%c[d_blue]NPC health%c[default] is one shared pool (not split across limbs).
-			\n- Every stalker has the same max HP, but Sin take ~70% less damage, zombies ~40% less, ISG ~30% less, meaning they effectively have more health than other stalkers.</text>
+			\n- Every stalker has the same max HP, but some factions take less damage (CQC / GBO):
+			\n- Sin: take 30% damage (70% reduction)
+			\n- Zombied: take 60% damage (40% reduction)
+			\n- ISG: take 70% damage (30% reduction); also 35% less AP against them
+			\n
+			\n%c[d_blue]NPC armor%c[default] comes from the visual model they are wearing (the outfit you see on them), not from whatever armor item they happen to drop.
+			\n- Loot and looks usually match (e.g. someone in an exo typically drops exo-tier gear if they drop an outfit), but combat armor is always the rendered model.</text>
 	</string>
 	<string id="ui_dorn_wpn_hit_power">
 		<text>Hit Power</text>
 	</string>
 	<string id="ui_dorn_wpn_ammo_torso">
-		<text>Damage Per Ammo</text>
+		<text>Raw Damage</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_damage_table">
 		<text>Show damage table</text>
@@ -120,7 +129,7 @@
 		<text>Show enhanced weapon stats</text>
 	</string>
 	<string id="dorn_weapon_tooltip_show_enhanced_weapon_stats_desc">
-		<text>Adds rows to show Hit Power and raw Damage Per Ammo, plus extra stats on Accuracy, Handling, Reliability, Recoil, and Muzzle Velocity.</text>
+		<text>Adds rows to show Hit Power and Raw Damage, plus extra stats on Accuracy, Handling, Reliability, Recoil, and Muzzle Velocity.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_debug_log">
 		<text>Enable debug logging</text>

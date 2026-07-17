@@ -8,19 +8,17 @@ dorn_weapon_tooltip_stats = {}
 local S = dorn_weapon_tooltip_stats
 
 -- GAMMA actor.ltx movement dispersion (Actor_Weapon.cpp, VEL_MAX = 10 m/s).
+-- Engine adds actor PDM degrees to weapon base; it does not multiply them.
 local ACTOR_DISP_BASE = 1.5
 local ACTOR_DISP_VEL = 2.5
-local ACTOR_CROUCH = -0.65
-local ACTOR_CROUCH_NO_ACC = -0.75
 local VEL_MAX = 10
 local SPEED_WALK = 2.5
 local SPEED_RUN = 5.0
 
 local GRAVITY = 9.81
-local DROP_RANGE_M = 100
-local WEAR_DROP = 0.10
-local SILENCER_WEAR_K = 1.25
-local RECOIL_KICK_THRESHOLD = 1.0
+local DROP_RANGE_M = 200
+-- Tweakable: ADS camera kick angle (degrees) used for Burst Control.
+local RECOIL_KICK_THRESHOLD = 3.0
 
 local STAT_NAMES = {
 	accuracy = "ui_inv_accuracy",
@@ -79,46 +77,17 @@ local function is_degraded_ammo(ammo_sec)
 	return ammo_sec:find("bad", 1, true) ~= nil
 end
 
-local function collect_ammo_impair_range(obj, sec)
-	local ammo_list = utils_item.get_ammo(sec, obj and obj:id() or nil)
-	if not ammo_list or not ammo_list[1] then
-		return nil, nil
-	end
-
-	local min_imp, max_imp = nil, nil
-	for _, ammo_sec in ipairs(ammo_list) do
-		if ini_sys:section_exist(ammo_sec) and not is_degraded_ammo(ammo_sec) then
-			local impair = ini_sys:r_float_ex(ammo_sec, "impair") or 1
-			if not min_imp or impair < min_imp then
-				min_imp = impair
-			end
-			if not max_imp or impair > max_imp then
-				max_imp = impair
-			end
-		end
-	end
-	return min_imp, max_imp
-end
-
-local function hip_spread_for_weapon(obj, sec, speed, crouch, crouch_no_acc)
+-- Engine: total = weapon_base + actor_PDM (Actor_Weapon.cpp / WeaponDispersion.cpp).
+-- Standing hip (avel=0, not crouch): actor = disp_base * PDM_base * (1 + speed/10 * disp_vel * PDM_vel).
+local function hip_spread_for_weapon(obj, sec, speed)
 	local fire_disp = wpn_param(obj, sec, "fire_dispersion_base", 0)
 	if fire_disp <= 0 then
 		return nil
 	end
 	local pdm_base = wpn_param(obj, sec, "PDM_disp_base", 1)
 	local pdm_vel = wpn_param(obj, sec, "PDM_disp_vel_factor", 1)
-	local pdm_crouch = wpn_param(obj, sec, "PDM_disp_crouch", 1)
-	local pdm_cna = wpn_param(obj, sec, "PDM_disp_crouch_no_acc", 1)
-
-	local vel = 1 + (speed / VEL_MAX) * ACTOR_DISP_VEL * pdm_vel
-	local mult = ACTOR_DISP_BASE * pdm_base * vel * vel
-	if crouch then
-		mult = mult * (1 + ACTOR_CROUCH * pdm_crouch)
-		if crouch_no_acc then
-			mult = mult * (1 + ACTOR_CROUCH_NO_ACC * pdm_cna)
-		end
-	end
-	return fire_disp * mult
+	local actor = ACTOR_DISP_BASE * pdm_base * (1 + (speed / VEL_MAX) * ACTOR_DISP_VEL * pdm_vel)
+	return fire_disp + actor
 end
 
 function S.append_accuracy(obj, sec)
@@ -130,54 +99,107 @@ function S.append_accuracy(obj, sec)
 end
 
 function S.append_handling(obj, sec)
-	local walk = hip_spread_for_weapon(obj, sec, SPEED_WALK, false, false)
-	local run = hip_spread_for_weapon(obj, sec, SPEED_RUN, false, false)
+	local walk = hip_spread_for_weapon(obj, sec, SPEED_WALK)
+	local run = hip_spread_for_weapon(obj, sec, SPEED_RUN)
 	if not walk or not run then
 		return nil
 	end
 	return string.format("walk %s · run %s hip", fmt_deg(walk), fmt_deg(run))
 end
 
+-- Average condition loss per shot across ammo types (no silencer).
+-- Engine wear = condition_shot_dec * impair.
 function S.append_reliability(obj, sec)
 	local dec = wpn_param(obj, sec, "condition_shot_dec", 0)
 	if dec <= 0 then
 		return nil
 	end
 
-	local min_imp, max_imp = collect_ammo_impair_range(obj, sec)
-	min_imp = min_imp or 1
-	max_imp = max_imp or min_imp
+	local ammo_list = utils_item.get_ammo(sec, obj and obj:id() or nil)
+	local sum = 0
+	local n = 0
+	if ammo_list then
+		for _, ammo_sec in ipairs(ammo_list) do
+			if ini_sys:section_exist(ammo_sec) and not is_degraded_ammo(ammo_sec) then
+				local impair = ini_sys:r_float_ex(ammo_sec, "impair") or 1
+				sum = sum + dec * impair
+				n = n + 1
+			end
+		end
+	end
+	if n == 0 then
+		sum = dec
+		n = 1
+	end
 
-	local best = math.floor(WEAR_DROP / (dec * min_imp) + 0.0001)
-	local worst = math.floor(WEAR_DROP / (dec * max_imp * SILENCER_WEAR_K) + 0.0001)
-	if best < 1 then
-		best = 1
+	local avg_pct = (sum / n) * 100
+	if avg_pct < 0.01 then
+		return string.format("%.3f%%/shot", avg_pct)
 	end
-	if worst < 1 then
-		worst = 1
+	if avg_pct < 1 then
+		return string.format("%.2f%%/shot", avg_pct)
 	end
-
-	if best == worst then
-		return string.format("%d", best)
-	end
-	return string.format("%d–%d", worst, best)
+	return string.format("%.1f%%/shot", avg_pct)
 end
 
+-- Fractional ADS shots until cumulative vertical camera climb reaches RECOIL_KICK_THRESHOLD.
+-- Engine: each shot adds (disp + (n-1)*inc) to m_angle_vert; cam_return=1 also relaxes
+-- toward 0 between shots at zoom_cam_relax_speed. Fire rate / recoil params use get_wpn_param
+-- so installed upgrades are included when obj is present.
 function S.append_recoil(obj, sec)
 	local disp = wpn_param(obj, sec, "zoom_cam_dispersion", 0)
 	if disp <= 0 then
 		return nil
 	end
 	local inc = wpn_param(obj, sec, "zoom_cam_dispersion_inc", 0)
+	local thr = RECOIL_KICK_THRESHOLD
 
-	local first = fmt_deg(disp)
-	if inc <= 0 or disp >= RECOIL_KICK_THRESHOLD then
-		return first .. " @1"
+	-- Engine default is 1 when the line is missing.
+	local return_on = true
+	if ini_sys:line_exist(sec, "cam_return") then
+		return_on = wpn_param(obj, sec, "cam_return", 1) ~= 0
 	end
 
-	local n = math.ceil((RECOIL_KICK_THRESHOLD - disp) / inc) + 1
-	local kick_n = disp + inc * (n - 1)
-	return string.format("%s @1 → %s @%d", first, fmt_deg(kick_n), n)
+	local relax = 0
+	local dt = 0
+	if return_on then
+		relax = wpn_param(obj, sec, "zoom_cam_relax_speed", 0)
+		if relax <= 0 then
+			relax = wpn_param(obj, sec, "cam_relax_speed", 0)
+		end
+		local rpm = wpn_param(obj, sec, "rpm", 0)
+		if rpm > 0 then
+			dt = 60 / rpm
+		end
+	end
+
+	local angle = 0
+	local max_shots = 200
+	for n = 1, max_shots do
+		local kick = disp + inc * (n - 1)
+		if kick < 0 then
+			kick = 0
+		end
+		local prev = angle
+		angle = angle + kick
+		if angle >= thr then
+			local shots = n
+			if kick > 0 and prev < thr then
+				shots = (n - 1) + (thr - prev) / kick
+			end
+			if shots < 1 then
+				shots = 1
+			end
+			return string.format("%.1f shots", shots)
+		end
+		if return_on and relax > 0 and dt > 0 then
+			angle = angle - relax * dt
+			if angle < 0 then
+				angle = 0
+			end
+		end
+	end
+	return string.format(">%d shots", max_shots)
 end
 
 function S.append_drop(obj, sec)
