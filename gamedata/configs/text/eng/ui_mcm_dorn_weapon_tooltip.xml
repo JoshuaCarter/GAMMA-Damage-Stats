@@ -76,6 +76,12 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_show_damage_table_desc">
 		<text>Under the weapon description: Type, AP, vs Torso Armor, vs Head Armor.</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_condition">
+		<text>Show Weapon Condition</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_condition_desc">
+		<text>Overall weapon condition % as the first line under the STATUS header.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_column_headers">
 		<text>Damage table column headers</text>
 	</string>
@@ -134,7 +140,7 @@
 		<text>Show Base Spread Stat</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_base_spread_desc">
-		<text>ADS bullet cone. E.g. 0.35 = up to 0.35 deg off center.</text>
+		<text>Max angle off target when standing still. E.g. 0.35 = up to 0.35 deg off center.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_handling">
 		<text>%c[dark_gray]Show Handling Stat%c[default]</text>
@@ -146,7 +152,7 @@
 		<text>Show Move Spread Stat</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_movement_spread_desc">
-		<text>Hip-fire cone while running (Base Spread + actor run PDM). Not used while ADS.</text>
+		<text>Final angle off target while hip-firing and running (Base Spread + movement). Aiming mostly cancels the movement add-on.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_hit_power">
 		<text>Show Hit Power Stat</text>
@@ -200,7 +206,7 @@
 		<text>Show Weapon Wear Stat</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_wear_desc">
-		<text>Avg weapon-condition lost per shot (ammo impair x condition_shot_dec).</text>
+		<text>Flat weapon-condition lost per shot (ammo impair x condition_shot_dec).</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_barrel_wear">
 		<text>Show Barrel Wear Stat</text>
@@ -283,13 +289,14 @@
 			\n - Base Spread angle translated into distance off target at the MCM Dispersion/Drop range (default 200m): range x tan(Base Spread).
 			\n
 			\n%c[d_green]Base Spread%c[default]
-			\n - Weapon fire_dispersion_base in degrees (the ADS bullet cone; actor add-on is near-zero while aiming).
-			\n - E.g. "0.35" means the final trajectory can be up to 0.35 degrees off center in any direction.
+			\n - Max angle off target when standing still (weapon fire_dispersion_base), in degrees.
+			\n - E.g. "0.35" means the bullet can be up to 0.35 degrees off center in any direction.
+			\n - While aiming, the movement add-on is near zero, so this is also what you get ADS.
 			\n
 			\n%c[d_green]Move Spread%c[default]
-			\n - Total hip-fire cone while running (weapon Base Spread + actor run PDM), in degrees.
-			\n - Not applied while ADS (ADS uses Base Spread only).
-			\n - Uses normal run speed, not sprint.
+			\n - Final total angle off target while hip-firing and running: Base Spread plus the movement penalty.
+			\n - One number for the actual cone you shoot with when moving (not just the movement add-on alone).
+			\n - Uses normal run speed, not sprint. Aiming mostly cancels the movement add-on (back to Base Spread).
 			\n
 			\n%c[d_green]Hit Power%c[default]
 			\n - New stat that shows what % of base ammo damage this weapon inflicts.
@@ -311,12 +318,16 @@
 			\n - How far a bullet drops over the MCM Dispersion/Drop range (default 200m; slider 100-2000).
 			\n
 			\n%c[d_green]Weapon Wear%c[default]
-			\n - Average weapon-condition lost per shot (avg ammo impair x condition_shot_dec).
+			\n - Flat weapon-condition lost per shot (ammo impair x condition_shot_dec).
 			\n - Shown as a percentage of total condition. This is the overall weapon condition bar, not the WPO barrel part.
+			\n - If ammo types have different impair values, the tooltip shows the mean across those ammo types.
 			\n
 			\n%c[d_green]Barrel Wear%c[default]
 			\n - Per-shot chance to lose 1% WPO barrel condition while weapon condition is under 85%. Above 85%, barrel does not wear from shooting.
 			\n - Math: (weapon_degradation x condition_shot_dec x 15000) / 10 percent. weapon_degradation comes from the economy difficulty factor (often 0.5).
+			\n
+			\n%c[d_green]Weapon Condition%c[default]
+			\n - Current overall weapon condition % injected as the first line under the WPO STATUS header (MCM toggle, on by default).
 			\n
 			\n%c[d_green]Burst Size%c[default]
 			\n - How many consecutive ADS shots (at max fire rate) it takes for the camera to climb to the MCM Burst Size climb target (default 3 degrees; slider 1-10, step 0.5).

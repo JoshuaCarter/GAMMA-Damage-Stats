@@ -255,14 +255,15 @@ function text_base_spread(obj, sec)
 	return fmt_deg(v)
 end
 
--- Hip-fire cone at run (degrees). Lower is better.
+-- Final hip-fire cone at run (degrees): Base Spread + movement. Lower is better.
 function value_movement_spread(obj, sec)
 	sec = resolve_sec(obj, sec)
 	if not is_weapon_section(sec) then
 		return nil
 	end
-	-- Engine: total hip cone = weapon fire_dispersion_base + actor PDM degrees
-	-- (Actor_Weapon.cpp). Move Spread uses normal run speed (not sprint).
+	-- Engine total hip cone = weapon fire_dispersion_base + actor PDM degrees
+	-- (Actor_Weapon.cpp). Shown as one number so players see actual spread while moving.
+	-- Uses normal run speed, not sprint.
 	local fire_disp = wpn_param(obj, sec, "fire_dispersion_base", 0)
 	if fire_disp <= 0 then
 		log_once("move_spread_fail:" .. tostring(sec), string.format(
@@ -274,7 +275,11 @@ function value_movement_spread(obj, sec)
 	local pdm_vel = wpn_param(obj, sec, "PDM_disp_vel_factor", 1)
 	local actor = ACTOR_DISP_BASE * pdm_base
 		* (1 + (SPEED_RUN / VEL_MAX) * ACTOR_DISP_VEL * pdm_vel)
-	return fire_disp + actor
+	local total = fire_disp + actor
+	log_once("move_spread_ok:" .. tostring(sec), string.format(
+		"move_spread [%s]: base=%.4f + move=%.4f = %.4f",
+		tostring(sec), fire_disp, actor, total))
+	return total
 end
 
 function text_movement_spread(obj, sec)
@@ -285,7 +290,7 @@ function text_movement_spread(obj, sec)
 	return fmt_deg(run)
 end
 
--- Avg weapon-condition loss % per shot. Lower is better.
+-- Flat weapon-condition loss % per shot (mean across ammo if impair differs). Lower is better.
 function value_weapon_wear(obj, sec)
 	sec = resolve_sec(obj, sec)
 	if not is_weapon_section(sec) then

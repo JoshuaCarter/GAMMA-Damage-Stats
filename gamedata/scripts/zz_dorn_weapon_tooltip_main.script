@@ -15,6 +15,7 @@ local DORN
 
 local CONFIG = {
 	show_damage_table = true,
+	show_weapon_condition = true,
 	show_hit_power = true,
 	show_stalker_damage = true,
 	show_mutant_damage = true,
@@ -1073,6 +1074,7 @@ local function on_option_change()
 	local prev_debug = CONFIG.debug_log
 	if DORN and DORN.mcm then
 		CONFIG.show_damage_table = DORN.mcm.bool(MOD_ID, "main/show_damage_table", true)
+		CONFIG.show_weapon_condition = DORN.mcm.bool(MOD_ID, "main/show_weapon_condition", true)
 		CONFIG.show_hit_power = read_new_stat_flag("show_hit_power")
 		CONFIG.show_stalker_damage = read_new_stat_flag("show_stalker_damage")
 		CONFIG.show_mutant_damage = read_new_stat_flag("show_mutant_damage")
@@ -1172,8 +1174,8 @@ local function on_option_change()
 	end
 
 	log_once("config", string.format(
-		"config: table=%s hit=%s stalker=%s mutant=%s base=%s/%s/%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s pellet%%=%s cond=%s/%s sil=%s/%s",
-		tostr(CONFIG.show_damage_table), tostr(CONFIG.show_hit_power),
+		"config: table=%s wpn_cond=%s hit=%s stalker=%s mutant=%s base=%s/%s/%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s pellet%%=%s cond=%s/%s sil=%s/%s",
+		tostr(CONFIG.show_damage_table), tostr(CONFIG.show_weapon_condition), tostr(CONFIG.show_hit_power),
 		tostr(CONFIG.show_stalker_damage), tostr(CONFIG.show_mutant_damage),
 		tostr(CONFIG.show_accuracy), tostr(CONFIG.show_handling),
 		tostr(CONFIG.show_fire_rate), tostr(CONFIG.show_mag_size),
@@ -1233,6 +1235,10 @@ local function is_degraded_ammo(sec)
 		return true
 	end
 	return sec:sub(-8) == "_verybad" or sec:sub(-4) == "_bad"
+end
+
+function is_show_weapon_condition()
+	return CONFIG.show_weapon_condition ~= false
 end
 
 function prop_hit_power(obj, sec)

@@ -12,6 +12,14 @@ local function gc(id)
 	return game.translate_string(id)
 end
 
+local function show_enabled()
+	local main = zz_dorn_weapon_tooltip_main
+	if main and main.is_show_weapon_condition then
+		return main.is_show_weapon_condition()
+	end
+	return true
+end
+
 local function weapon_condition_line(obj)
 	if not obj or not obj.condition then
 		return nil
@@ -63,6 +71,9 @@ local function build_desc_header_hook(obj, sec, str)
 	local header = base_build_desc_header(obj, sec, str)
 	if not header then
 		return str or ""
+	end
+	if not show_enabled() then
+		return header
 	end
 	if not obj or not IsWeapon or not IsWeapon(obj) then
 		return header
