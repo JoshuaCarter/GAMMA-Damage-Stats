@@ -28,6 +28,9 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_calc_range">
 		<text>Assumed range (meters) for damage calculations</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer">
+		<text>Apply silencer damage/AP boost when equipped</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_stat_row_placement">
 		<text>Where to place new stats list rows</text>
 	</string>
@@ -139,7 +142,7 @@
 			- Uses ballistic calculations from live CQC grok_bo / ammo (CQC loads above GBOOBS).
 			\n- Assumed range is set by MCM (default 20m). Weapon/barrel condition is treated as 100% you toggle to use live condition numbers.
 			\n- Damage numbers also always factor in current difficulty and weapon hit power.
-			\n- No calculations account for external/non-intrinsic factors such as attachments (except silencers unless you toggle that off), artifacts, medicines, etc.
+			\n- Attachments are ignored except silencers: when MCM "Apply silencer..." is on (default), stalker damage/AP use CQC's x1.07 if a silencer is equipped or integrated. Mutant damage never applies it (matches CQC). Artifacts, medicines, etc. are still ignored.
 			\n- Ammo rows (damage table, Stalker Damage, and Mutant Damage) default to the same order as the tooltip ammo icons. MCM can instead sort DMG desc or AP desc.
 		</text>
 	</string>
@@ -165,11 +168,11 @@
 			\n
 			\n%c[d_green]Stalker Damage%c[default]
 			\n - New stat for per-ammo torso damage vs stalkers (does not account for armor).
-			\n - Math: (hit_power / range_factor) x ammo_k_hit x torso_mult (0.9) x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult.
+			\n - Math: (hit_power / range_factor) x ammo_k_hit x torso_mult (0.9) x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x silencer (1.07 if equipped and MCM on).
 			\n
 			\n%c[d_green]Mutant Damage%c[default]
 			\n - New stat for per-ammo damage vs mutants (before mutant specific modifiers).
-			\n - Math: (hit_power / range_factor) x ammo_k_hit x pellets x mut_mult (0.85) x mut_ammo_mult x barrel_cond x difficulty.
+			\n - Math: (hit_power / range_factor) x ammo_k_hit x pellets x mut_mult (0.85) x mut_ammo_mult x barrel_cond x difficulty (no silencer; matches CQC).
 			\n
 			\n%c[d_green]Bullet Drop%c[default]
 			\n - New stat for how far down a bullet will drop after traveling 200m.
@@ -202,8 +205,9 @@
 			\n%c[d_green]Math%c[default] (live CQC grok_bo):
 			\n - %c[d_blue]range_factor%c[default] = 1 + (range / 200) x k_air x 0.5 / (1 - k_air + 0.1)
 			\n - %c[d_blue]bone_mult%c[default] = 0.9 (torso) / 3.65 (head)
-			\n - %c[d_blue]power%c[default] = (hit_power / %c[d_blue]range_factor%c[default]) x ammo_k_hit x %c[d_blue]bone_mult%c[default] x tier_ap_scale x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x 100
-			\n - %c[d_blue]combat_ap%c[default] = (k_ap x 10) x tier_ap_scale x barrel_cond / range_factor x 0.80 x difficulty
+			\n - %c[d_blue]silencer%c[default] = 1.07 if MCM apply_silencer is on and a silencer is attached (or integrated); else 1
+			\n - %c[d_blue]power%c[default] = (hit_power / %c[d_blue]range_factor%c[default]) x ammo_k_hit x %c[d_blue]bone_mult%c[default] x tier_ap_scale x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x %c[d_blue]silencer%c[default] x 100
+			\n - %c[d_blue]combat_ap%c[default] = (k_ap x 10) x tier_ap_scale x barrel_cond / range_factor x 0.80 x difficulty x %c[d_blue]silencer%c[default]
 			\n - IF %c[d_blue]combat_ap%c[default] &gt;= armor OR armor is 0 THEN  %c[d_red]damage%c[default] = %c[d_blue]power%c[default]
 			\n - ELSE %c[d_red]damage%c[default] = %c[d_blue]power%c[default] x avg_hit_fraction END
 			\n - AP column shows ini k_ap x 1000 (same as the ammo info card); combat uses k_ap x 10.
@@ -286,7 +290,9 @@
 			\n - 0.90: Buckshot 12x70 / 20x70
 			\n
 			\n%c[d_green]Silencers%c[default]:
-			\n - Live CQC multiplies combat damage and AP x1.07 when a silencer is attached (or integrated).
+			\n - Live CQC multiplies stalker combat damage and AP x1.07 when a silencer is attached (or the weapon has an integrated suppressor).
+			\n - This tooltip applies that same x1.07 to the damage table, Stalker Damage, and AP color scale when MCM "Apply silencer..." is on (default) and the inspected weapon has a silencer.
+			\n - Mutant damage does not get the silencer boost (matches live CQC).
 			\n - Boomsticks mod still multiplies muzzle velocity x0.9 and cam recoil x0.82 when attached.
 		</text>
 	</string>

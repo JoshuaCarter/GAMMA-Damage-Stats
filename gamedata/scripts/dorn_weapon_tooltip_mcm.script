@@ -45,6 +45,13 @@ function on_mcm_load()
 						hint = "dorn_weapon_tooltip_calc_range",
 					},
 					{
+						id = "apply_silencer",
+						type = "check",
+						val = 1,
+						def = true,
+						hint = "dorn_weapon_tooltip_apply_silencer",
+					},
+					{
 						id = "stat_row_placement",
 						type = "list",
 						val = 0,

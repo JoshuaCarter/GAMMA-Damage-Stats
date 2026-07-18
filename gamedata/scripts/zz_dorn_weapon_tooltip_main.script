@@ -18,7 +18,7 @@
 	                Failed-pen chip uses the average hit_fraction for that
 	                exact armor only.
 
-	One row per ammo round (label from inv_name_short, calibre prefix stripped).
+	One row per ammo round (Type label from AMMO_TYPE_SHORT map; unknown = ????).
 	AP column grey-to-yellow. Shift columns via XML.
 
 	This script is prefixed zz_ on purpose: G.A.M.M.A. Accurate Defense Values
@@ -42,17 +42,21 @@
 	   barrel-condition factors to the damage table / slash damage stats
 	   (off = assume 100%).
 
-	6. show_hit_power / show_stalker_damage / show_mutant_damage - Hit Power,
+	6. apply_silencer - when on (default), multiply stalker AP and damage by
+	   CQC's 1.07 if a silencer is attached or the weapon has an integrated
+	   suppressor. Mutant hits do not use this in live CQC.
+
+	7. show_hit_power / show_stalker_damage / show_mutant_damage - Hit Power,
 	   Stalker Damage, and Mutant Damage rows (each on by default).
 
-	7. show_accuracy / show_handling / show_reliability / show_recoil /
+	8. show_accuracy / show_handling / show_reliability / show_recoil /
 	   show_muzzle_velocity - base Momopate/vanilla rows (each on by default).
 
-	8. show_base_spread / show_movement_spread / show_weapon_wear /
+	9. show_base_spread / show_movement_spread / show_weapon_wear /
 	   show_burst_control / show_bullet_drop - new companion rows (each on by
 	   default). Placement via stat_row_placement.
 
-	9. stat_row_placement - "inline" (under related base row) or "after"
+	10. stat_row_placement - "inline" (under related base row) or "after"
 	   (after Accuracy…Recoil Control).
 ]]
 
@@ -82,6 +86,7 @@ local CONFIG = {
 	calc_range_m = 20,
 	use_condition_table = false,
 	use_condition_stats = false,
+	apply_silencer = true,
 	debug_log = false,
 }
 
@@ -119,12 +124,6 @@ local AP_COLOR_AP_SCALE = 0.7000 -- Max-tier outfit ap_scale average
 local AP_COLOR_REF_AIR = 0.05
 local REF_DIST_M = 20
 
--- TEMP: force every Type cell to the globally longest ammo Type label so
--- column width / Type→vs Torso spacing can be checked in-game. Remove after.
-local TEMP_FORCE_LONGEST_AMMO_LABEL = true
--- Longest cleaned inv_name_short among GAMMA ammo (ammo_23x75_shrapnel).
-local TEMP_LONGEST_AMMO_LABEL = '"Shrapnel-25" 23x75mm'
-
 -- Named NPC bone-armor columns from visual profiles (see npc_visual_armor_reference.md).
 -- Only named floats are shown; rare 1-2 profile cliffs (0.125/0.300/0.350/0.430) are skipped.
 -- hit_frac / ap_scale are averages across profiles that share that exact armor
@@ -153,14 +152,31 @@ local NUM_TORSO_TIERS = #TORSO_TIERS
 local NUM_HEAD_TIERS = #HEAD_TIERS
 
 -- Live combat math follows CQC grok_bo (higher load order than GBOOBS):
--- combat AP = ini k_ap x10 x ap_scale x barrel / range_factor x 0.80 x difficulty.
+-- combat AP = ini k_ap x10 x ap_scale x barrel / range_factor x 0.80 x difficulty
+--   x silencer (1.07 when equipped / integrated, if MCM apply_silencer).
 -- Bone mults from CQC stalker_damage. Difficulty from CQC/GAMMA diff_game type.
--- Silencer x1.07 and sniper +0.05 AP omitted (generic unequipped tooltip).
+-- Sniper +0.05 AP omitted (generic tooltip). Mutant path has no silencer in CQC.
 local BONE_DMG_TORSO = 0.9    -- bip01_spine
 local BONE_DMG_HEAD  = 3.65   -- bip01_head
 local BALLISTIC_BONUS = 1.1
 local K_AP_COMBAT_SCALE = 10  -- CQC: ini k_ap * 10 for combat
 local AP_TAIL = 0.80          -- CQC post-grouping AP adjustment
+local SILENCER_BOOST = 1.07
+-- CQC integrated_silencer table (parent_section keys).
+local INTEGRATED_SILENCER = {
+	["wpn_dvl10_m1"] = true,
+	["wpn_vssk"] = true,
+	["wpn_val_tac"] = true,
+	["wpn_vintorez"] = true,
+	["wpn_val"] = true,
+	["wpn_val_modern"] = true,
+	["wpn_vintorez_m1"] = true,
+	["wpn_vintorez_m2"] = true,
+	["wpn_vintorez_isg"] = true,
+	["wpn_mp5sd"] = true,
+	["wpn_mp5sd_custom"] = true,
+	["wpn_mp5sd_new"] = true,
+}
 local DIFFICULTY_MULT = {
 	[1] = 1.3,
 	[2] = 1.05,
@@ -211,65 +227,71 @@ local function format_armor_label(armor)
 	return (s:gsub("0+$", ""):gsub("%.$", ""))
 end
 
--- Round label from GAMMA inv_name_short, with the leading calibre stripped
--- (e.g. "5.45x39 HP" -> "HP", "7.62x51 mm NATO AP rounds" -> "AP", "12x76 AP slugs"
--- -> "AP slugs"). We drop the leading calibre token(s) plus noise words so both the
--- curated inv_name_short and the verbose inv_name fallback come out tidy.
-
--- Words that carry no ammo-type meaning and should be dropped from the label.
-local AMMO_NOISE_WORD = {
-	mm = true, nato = true, rounds = true, round = true,
-	shells = true, shell = true, shot = true, cartridge = true,
-	cartridges = true, calibre = true, caliber = true,
+-- Fixed Type-column short names (≤6 chars). Source: ammo_type_label_reference.md.
+-- Unmapped sections (after stripping _bad / _verybad) show "????".
+local AMMO_TYPE_SHORT = {
+	["ammo_11.43x23_fmj"] = "FMJ",
+	["ammo_11.43x23_hydro"] = "HP",
+	["ammo_12.7x55_ap"] = "AP",
+	["ammo_12.7x55_fmj"] = "FMJ",
+	["ammo_12x70_buck"] = "BUCK",
+	["ammo_12x76_bull"] = "BULL",
+	["ammo_12x76_dart"] = "SLAP",
+	["ammo_12x76_zhekan"] = "SLUG",
+	["ammo_20x70_buck"] = "BUCK",
+	["ammo_23_eco"] = "ECO",
+	["ammo_23x75_barrikada"] = "BARR",
+	["ammo_23x75_shrapnel"] = "SHRAP",
+	["ammo_338_federal"] = "FED",
+	["ammo_357_hp_mag"] = "HP",
+	["ammo_4.6x30_fmj"] = "FMJ",
+	["ammo_5.45x39_ap"] = "AP",
+	["ammo_5.45x39_ep"] = "HP",
+	["ammo_5.45x39_fmj"] = "FMJ",
+	["ammo_5.56x45_ap"] = "AP",
+	["ammo_5.56x45_fmj"] = "FMJ",
+	["ammo_5.56x45_ss190"] = "HP",
+	["ammo_5.7x28_ss190"] = "AP",
+	["ammo_5.7x28_ss195"] = "FMJ",
+	["ammo_50_bmg"] = "BMG",
+	["ammo_7.62x25_p"] = "LRNPC",
+	["ammo_7.62x25_ps"] = "PST",
+	["ammo_7.62x39_ap"] = "AP",
+	["ammo_7.62x39_fmj"] = "FMJ",
+	["ammo_7.62x51_ap"] = "AP",
+	["ammo_7.62x51_fmj"] = "FMJ",
+	["ammo_7.62x54_7h1"] = "7N1",
+	["ammo_7.62x54_7h14"] = "7N14",
+	["ammo_7.62x54_ap"] = "AP",
+	["ammo_7.92x33_ap"] = "AP",
+	["ammo_7.92x33_fmj"] = "FMJ",
+	["ammo_9x18_ap"] = "AP",
+	["ammo_9x18_fmj"] = "FMJ",
+	["ammo_9x18_pmm"] = "HP",
+	["ammo_9x19_ap"] = "AP",
+	["ammo_9x19_fmj"] = "FMJ",
+	["ammo_9x19_pbp"] = "HP",
+	["ammo_9x21_sp10"] = "SP10",
+	["ammo_9x39_ap"] = "SP-6",
+	["ammo_9x39_pab9"] = "SP-5",
+	["ammo_gauss"] = "BATT",
+	["ammo_m209"] = "M203",
+	["ammo_magnum_300"] = "MAG",
+	["ammo_og-7b"] = "OG-7V",
+	["ammo_pkm_100"] = "PP",
+	["ammo_vog-25"] = "VOG-25",
+	["ammo_vog-30"] = "VOG-30",
 }
-
--- A pure calibre token like 7.62x51, .45, .338, 12x76, 5.7x28 (not 7N14, SP-6).
-local function is_calibre_token(tok)
-	return tok:match("^%.?%d[%d%.x]*$") ~= nil
-end
-
-local function clean_ammo_name(name)
-	local kept = {}
-	for tok in name:gmatch("%S+") do
-		local lower = string.lower(tok)
-		if not AMMO_NOISE_WORD[lower] and not is_calibre_token(tok) then
-			kept[#kept + 1] = tok
-		end
-	end
-	return table.concat(kept, " ")
-end
-
--- Capitalizes the first letter of every word, leaving already-uppercase
--- letters (e.g. "AP", "FMJ") untouched. Turns stray lowercase source text
--- like "20x70 shot" into "20x70 Shot".
-local function capitalize_words(str)
-	return (str:gsub("%f[%a]%l", string.upper))
-end
+local AMMO_TYPE_UNKNOWN = "????"
 
 local function ammo_display_label(sec)
-	local name_id = ini_sys:r_string_ex(sec, "inv_name_short")
-	if not name_id or name_id == "" then
-		name_id = ini_sys:r_string_ex(sec, "inv_name")
+	local base = sec or ""
+	if base:sub(-8) == "_verybad" then
+		base = base:sub(1, -9)
+	elseif base:sub(-4) == "_bad" then
+		base = base:sub(1, -5)
 	end
-	if not name_id or name_id == "" then
-		return "?"
-	end
-
-	local name = game.translate_string(name_id)
-	if not name or name == "" or name == name_id then
-		name = name_id
-	end
-
-	local cleaned = clean_ammo_name(name)
-	cleaned = cleaned:match("^%s*(.-)%s*$") or cleaned
-	if cleaned == "" then
-		-- All tokens were calibre/noise; fall back to the raw trimmed name.
-		cleaned = name:match("^%s*(.-)%s*$") or name
-	end
-	if cleaned == "" then
-		return "?"
-	end
-	return capitalize_words(cleaned)
+	return AMMO_TYPE_SHORT[base] or AMMO_TYPE_UNKNOWN
 end
 
 local CLR = {
@@ -709,6 +731,7 @@ local function on_option_change()
 		CONFIG.calc_range_m = clamp(DORN.mcm.number(MOD_ID, "main/calc_range", 20), 0, 200)
 		CONFIG.use_condition_table = DORN.mcm.bool(MOD_ID, "main/use_condition_table", false)
 		CONFIG.use_condition_stats = DORN.mcm.bool(MOD_ID, "main/use_condition_stats", false)
+		CONFIG.apply_silencer = DORN.mcm.bool(MOD_ID, "main/apply_silencer", true)
 		CONFIG.debug_log = DORN.mcm.bool(MOD_ID, "development/debug_log", false)
 	end
 
@@ -724,7 +747,7 @@ local function on_option_change()
 	end
 
 	log_once("config", string.format(
-		"config: table=%s hit=%s mutant=%s base=%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s cond=%s/%s",
+		"config: table=%s hit=%s mutant=%s base=%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s cond=%s/%s sil=%s",
 		tostring(CONFIG.show_damage_table), tostring(CONFIG.show_hit_power),
 		tostring(CONFIG.show_mutant_damage),
 		tostring(CONFIG.show_accuracy), tostring(CONFIG.show_handling),
@@ -735,7 +758,7 @@ local function on_option_change()
 		tostring(CONFIG.show_bullet_drop), tostring(CONFIG.stat_row_placement),
 		tostring(CONFIG.column_headers), tostring(CONFIG.ammo_order),
 		tostring(CONFIG.calc_range_m), tostring(CONFIG.use_condition_table),
-		tostring(CONFIG.use_condition_stats)))
+		tostring(CONFIG.use_condition_stats), tostring(CONFIG.apply_silencer)))
 end
 
 local function first_number(str)
@@ -885,15 +908,15 @@ local function difficulty_mult()
 end
 
 -- Display AP (k_ap x 1000) needed for CQC combat_ap to first penetrate 0.650 torso armor.
-local function ap_pen_display_max()
+local function ap_pen_display_max(silencer)
 	local dist_mult = dist_atten(AP_COLOR_REF_AIR, calc_range())
 	local k_ap_ltx = AP_COLOR_ARMOR * dist_mult
-		/ (K_AP_COMBAT_SCALE * AP_COLOR_AP_SCALE * AP_TAIL * difficulty_mult())
+		/ (K_AP_COMBAT_SCALE * AP_COLOR_AP_SCALE * AP_TAIL * difficulty_mult() * (silencer or 1))
 	return math.max(math.ceil(k_ap_ltx * AP_SCALE), 1)
 end
 
-local function ap_display_color(ap)
-	local hi = ap_pen_display_max()
+local function ap_display_color(ap, silencer)
+	local hi = ap_pen_display_max(silencer)
 	local t = clamp((tonumber(ap) or 0) / hi, 0, 1)
 	return GetARGB(255,
 		math.floor(lerp(175, 255, t)),
@@ -909,26 +932,48 @@ local function npc_ammo_mult(ammo_sec)
 	return 1.0
 end
 
--- CQC: (k_ap x10) x ap_scale x barrel / range_factor x 0.80 x difficulty.
-local function combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel)
+-- CQC silencer_boost: 1.07 if attached silencer or integrated suppressor parent.
+local function silencer_mult(obj, sec)
+	if not CONFIG.apply_silencer then
+		return 1
+	end
+	if obj then
+		local ok, has = pcall(function()
+			return obj:weapon_is_silencer()
+		end)
+		if ok and has then
+			return SILENCER_BOOST
+		end
+	end
+	local parent = sec and (ini_sys:r_string_ex(sec, "parent_section") or sec) or nil
+	if parent and INTEGRATED_SILENCER[parent] then
+		return SILENCER_BOOST
+	end
+	return 1
+end
+
+-- CQC: (k_ap x10) x ap_scale x barrel / range_factor x 0.80 x difficulty x silencer.
+local function combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer)
 	return (k_ap_ltx * K_AP_COMBAT_SCALE)
 		* ap_scale * (barrel or 1)
 		/ dist_atten(air_res, dist)
 		* AP_TAIL
 		* difficulty_mult()
+		* (silencer or 1)
 end
 
--- CQC NPC power, plus difficulty, optional barrel, and NPC ammo_mult.
-local function base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec)
+-- CQC NPC power, plus difficulty, optional barrel, NPC ammo_mult, and silencer.
+local function base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec, silencer)
 	return hit_power / dist_atten(air_res, dist)
 		* k_hit * bone_mult * ap_scale * BALLISTIC_BONUS * pellet_mult
 		* difficulty_mult() * (barrel or 1)
 		* npc_ammo_mult(ammo_sec)
+		* (silencer or 1)
 end
 
-local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel, ammo_sec)
-	local ap = combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel)
-	local power = base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec)
+local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel, ammo_sec, silencer)
+	local ap = combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer)
+	local power = base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec, silencer)
 	-- Armor 0 (bare head): always full power; never apply chip hit_frac.
 	local penetrated = (armor <= 0) or (ap >= armor)
 	local dmg = penetrated and power or (power * hit_frac)
@@ -969,14 +1014,14 @@ local function section_dmg_max(rows, section)
 	return hi
 end
 
-local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel, ammo_sec)
+local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel, ammo_sec, silencer)
 	local bone_mult = headshot and BONE_DMG_HEAD or BONE_DMG_TORSO
 	local out = {}
 	for i, tier in ipairs(tiers) do
 		out[i] = effective_dmg(
 			hit_power, k_hit, k_ap_ltx, air_res, tier.armor,
 			tier.ap_scale, tier.hit_frac, bone_mult,
-			dist, pellet_mult, barrel, ammo_sec
+			dist, pellet_mult, barrel, ammo_sec, silencer
 		)
 	end
 	return out
@@ -1078,15 +1123,16 @@ local function build_ammo_damage_rows(obj, sec)
 
 	local dist = calc_range()
 	local barrel = barrel_mult(obj, CONFIG.use_condition_table, "stalker")
+	local silencer = silencer_mult(obj, sec)
 	local rows = {}
 	for _, r in ipairs(rounds) do
 		local torso = fmt_tier_cells(calc_tier_damages(
 			hit_power, r.k_hit, r.k_ap, r.air_res, TORSO_TIERS,
-			false, dist, r.pellets, barrel, r.sec
+			false, dist, r.pellets, barrel, r.sec, silencer
 		), NUM_TORSO_TIERS)
 		local head = fmt_tier_cells(calc_tier_damages(
 			hit_power, r.k_hit, r.k_ap, r.air_res, HEAD_TIERS,
-			true, dist, r.pellets, barrel, r.sec
+			true, dist, r.pellets, barrel, r.sec, silencer
 		), NUM_HEAD_TIERS)
 		rows[#rows + 1] = {
 			label = r.label,
@@ -1105,19 +1151,9 @@ local function build_ammo_damage_rows(obj, sec)
 	local head_hi = section_dmg_max(rows, "head")
 	local ordered = {}
 
-	local force_label = TEMP_FORCE_LONGEST_AMMO_LABEL and TEMP_LONGEST_AMMO_LABEL or nil
-	if force_label and not logged_once["temp_longest_ammo_label"] then
-		logged_once["temp_longest_ammo_label"] = true
-		printf(
-			"[DORN][%s] TEMP Type label forced to: %s",
-			MOD_ID,
-			force_label
-		)
-	end
-
 	for _, row in ipairs(rows) do
 		ordered[#ordered + 1] = {
-			type = force_label or row.label,
+			type = row.label,
 			ap = tostring(row.ap),
 			ap_val = row.ap,
 			torso = row.torso,
@@ -1131,6 +1167,7 @@ local function build_ammo_damage_rows(obj, sec)
 
 	return {
 		rows = ordered,
+		silencer = silencer,
 	}
 end
 
@@ -1219,10 +1256,11 @@ format_stalker_ammo_damage_slash = function(obj, sec)
 
 	local dist = calc_range()
 	local barrel = barrel_mult(obj, CONFIG.use_condition_stats, "stalker")
+	local silencer = silencer_mult(obj, sec)
 	local parts = {}
 	for _, r in ipairs(rounds) do
 		local dmg = math.floor(
-			base_power(hit_power, r.k_hit, r.air_res, dist, BONE_DMG_TORSO, 1.0, r.pellets, barrel, r.sec)
+			base_power(hit_power, r.k_hit, r.air_res, dist, BONE_DMG_TORSO, 1.0, r.pellets, barrel, r.sec, silencer)
 				* DAMAGE_SCALE + 0.5
 		)
 		parts[#parts + 1] = tostring(dmg)
@@ -1416,7 +1454,7 @@ local function populate_damage_fields(fields, data, panel_width)
 			row.type:SetText(rd.type or "")
 			row.type:SetTextColor(CLR.white)
 			row.ap:SetText(rd.ap or "")
-			row.ap:SetTextColor(ap_display_color(rd.ap_val or 0))
+			row.ap:SetTextColor(ap_display_color(rd.ap_val or 0, data.silencer))
 			for t = 1, NUM_TORSO_TIERS do
 				set_damage_cell(row.torso[t], rd.torso and rd.torso[t], rd.torso_lo, rd.torso_hi)
 			end

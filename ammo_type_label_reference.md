@@ -2,11 +2,12 @@
 
 Complete list of every ammo section in this doc (sorted by section).
 Full display name = translated `inv_name`. Source for clean = translated `inv_name_short` (else `inv_name`).
+Tooltip label = `AMMO_TYPE_SHORT` in `zz_dorn_weapon_tooltip_main.script` (≤6 chars; unmapped → `????`).
 
-| section                | used | full display name (`inv_name`) | source text used for clean | rendered Type label |
+| section                | used | full display name (`inv_name`) | source text used for clean | Tooltip label |
 | ---------------------- | ---- | ------------------------------ | -------------------------- | ------------------- |
 | `ammo_11.43x23_fmj`    | yes  | .45 ACP FMJ rounds             | .45 FMJ                    | `FMJ`               |
-| `ammo_11.43x23_hydro`  | yes  | .45 ACP Hydra-shock HP rounds  | .45 AP                     | `AP`                |
+| `ammo_11.43x23_hydro`  | yes  | .45 ACP Hydra-shock HP rounds  | .45 HP                     | `HP`                |
 | `ammo_12.7x55_ap`      | yes  | 12.7x55 mm STs-130 VPS rounds  | 12.7x55 AP                 | `AP`                |
 | `ammo_12.7x55_fmj`     | yes  | 12.7x55mm STs-130 rounds       | 12.7x55 FMJ                | `FMJ`               |
 | `ammo_12x70_buck`      | yes  | 12x70 buckshot shells          | 12x70 buck                 | `BUCK`              |

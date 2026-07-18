@@ -6,7 +6,7 @@
 
 **GAMMA repair** = modal `repair_type` of outfits those visuals tend to drop (`death_outfits` → Outfits Balances). Ladder is novice → light → medium → heavy → exo (Nosorog is still exo). Percents below are among mapped models at that bone value (some visuals have no death-outfit join).
 
-**Ammo pen** = rough share of standard live firearm ammo that pens that bone armor at 20 m under **CQC** `grok_bo` math: `(k_ap × 10) × ap_scale / range_atten × 0.80` (difficulty mult = 1.0 for this table). CQC loads above GBOOBS, so CQC owns `grok_bo` and `weapon_ammo.ltx`. Head values model `bip01_head` (no eye/eyelid AP boost). Excludes `_bad` / `_verybad`, knives, batteries, and grenades (~48 rounds). Rounded to nearest 5%.
+**Ammo pen** = rough share of standard live firearm ammo that pens that bone armor at 20 m under **CQC** `grok_bo` math: `(k_ap × 10) × ap_scale / range_atten × 0.80` (difficulty mult = 1.0 for this table; no silencer — live CQC also ×1.07 when silenced). CQC loads above GBOOBS, so CQC owns `grok_bo` and `weapon_ammo.ltx`. Head values model `bip01_head` (no eye/eyelid AP boost). Excludes `_bad` / `_verybad`, knives, batteries, and grenades (~48 rounds). Rounded to nearest 5%.
 
 ### Torso
 
