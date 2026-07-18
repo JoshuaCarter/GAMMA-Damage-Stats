@@ -45,6 +45,16 @@ function on_mcm_load()
 						hint = "dorn_weapon_tooltip_calc_range",
 					},
 					{
+						id = "pellet_hit_pct",
+						type = "track",
+						val = 2,
+						min = 1,
+						max = 100,
+						step = 1,
+						def = 100,
+						hint = "dorn_weapon_tooltip_pellet_hit_pct",
+					},
+					{
 						id = "drop_range",
 						type = "track",
 						val = 2,

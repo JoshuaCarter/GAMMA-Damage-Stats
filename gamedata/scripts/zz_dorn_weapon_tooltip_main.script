@@ -35,6 +35,7 @@ local CONFIG = {
 	column_headers = "names",
 	ammo_order = "default",
 	calc_range_m = 20,
+	pellet_hit_pct = 100,
 	use_condition_table = false,
 	use_condition_stats = false,
 	apply_silencer = true,
@@ -616,13 +617,14 @@ end
 local function inline_companion_pair(parent_key, parent_shown, upper_shown, lower_shown)
 	local parent_idx = resolved_base_index(parent_key)
 	if parent_shown then
-		return parent_idx + 0.25, parent_idx + 0.5
+		if upper_shown and lower_shown then
+			return parent_idx + 0.25, parent_idx + 0.5
+		end
+		-- Solo companion: same slot as other single companions (parent + 0.5).
+		return parent_idx + 0.5, parent_idx + 0.5
 	end
 	if upper_shown and lower_shown then
 		return parent_idx, parent_idx + 0.25
-	end
-	if upper_shown then
-		return parent_idx, parent_idx
 	end
 	return parent_idx, parent_idx
 end
@@ -732,6 +734,7 @@ local function apply_enhanced_weapon_stats()
 	local N = (dorn_weapon_tooltip_stats and dorn_weapon_tooltip_stats.NAME) or EXTRA_STAT_NAME
 	weapon_stats["dorn_dispersion"] = CONFIG.show_dispersion
 		and make_dorn_row(idx.dispersion, N.dispersion, "ui_wp_prop_tochnost", "prop_dispersion")
+		or nil
 	weapon_stats["dorn_base_spread"] = CONFIG.show_base_spread
 		and make_dorn_row(idx.base_spread, N.base_spread, "ui_wp_prop_tochnost", "prop_base_spread")
 		or nil
@@ -940,6 +943,7 @@ local function on_option_change()
 			CONFIG.stat_row_placement = "inline"
 		end
 		CONFIG.calc_range_m = clamp(DORN.mcm.number(MOD_ID, "main/calc_range", 20), 0, 200)
+		CONFIG.pellet_hit_pct = clamp(DORN.mcm.number(MOD_ID, "main/pellet_hit_pct", 100), 1, 100)
 		local drop_range = clamp(DORN.mcm.number(MOD_ID, "main/drop_range", 200), 100, 2000)
 		if dorn_weapon_tooltip_stats and dorn_weapon_tooltip_stats.set_drop_range then
 			dorn_weapon_tooltip_stats.set_drop_range(drop_range)
@@ -975,7 +979,7 @@ local function on_option_change()
 	end
 
 	log_once("config", string.format(
-		"config: table=%s hit=%s mutant=%s base=%s/%s/%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s cond=%s/%s sil=%s",
+		"config: table=%s hit=%s mutant=%s base=%s/%s/%s/%s/%s/%s/%s extra=%s/%s/%s/%s/%s/%s place=%s headers=%s order=%s range=%s pellet%%=%s cond=%s/%s sil=%s",
 		tostring(CONFIG.show_damage_table), tostring(CONFIG.show_hit_power),
 		tostring(CONFIG.show_mutant_damage),
 		tostring(CONFIG.show_accuracy), tostring(CONFIG.show_handling),
@@ -987,7 +991,8 @@ local function on_option_change()
 		tostring(CONFIG.show_weapon_wear), tostring(CONFIG.show_burst_control),
 		tostring(CONFIG.show_bullet_drop), tostring(CONFIG.stat_row_placement),
 		tostring(CONFIG.column_headers), tostring(CONFIG.ammo_order),
-		tostring(CONFIG.calc_range_m), tostring(CONFIG.use_condition_table),
+		tostring(CONFIG.calc_range_m), tostring(CONFIG.pellet_hit_pct),
+		tostring(CONFIG.use_condition_table),
 		tostring(CONFIG.use_condition_stats), tostring(CONFIG.apply_silencer)))
 end
 
@@ -1296,9 +1301,15 @@ local function collect_sorted_ammo_rounds(obj, sec, max_count)
 			-- Pellet count is per-round: a weapon's ammo_class can mix slugs
 			-- (1 projectile) with buckshot (many), so each row must use its
 			-- own round's pellet count, not the highest one seen across the
-			-- whole ammo_class.
+			-- whole ammo_class. MCM pellet_hit_pct scales multi-pellet rounds only.
 			local pellets = ini_sys:r_float_ex(ammo_sec, "buck_shot") or 0
 			pellets = (pellets > 1) and pellets or 1
+			if pellets > 1 then
+				pellets = pellets * ((tonumber(CONFIG.pellet_hit_pct) or 100) / 100)
+				if pellets < 1 then
+					pellets = 1
+				end
+			end
 
 			rounds[#rounds + 1] = {
 				sec = ammo_sec,
@@ -1664,13 +1675,6 @@ local function create_damage_fields(parent, panel_x)
 		fields.rows[i] = row
 	end
 
-	-- After rows so 1px dividers paint above cell text windows.
-	fields.vlines = {
-		DAMAGE_XML:InitStatic("panel:vline_type_ap", dlg),
-		DAMAGE_XML:InitStatic("panel:vline_ap_torso", dlg),
-		DAMAGE_XML:InitStatic("panel:vline_torso_head", dlg),
-	}
-
 	fields.layout = read_layout_metrics(fields)
 	apply_column_headers(fields)
 
@@ -1724,20 +1728,6 @@ local function populate_damage_fields(fields, data, panel_width)
 	local w = panel_width or fields.dlg:GetWidth()
 	local panel_h = last_row_y + layout.row_h
 	fields.dlg:SetWndSize(vector2():set(w, panel_h))
-	-- Vertical dividers cover data-row text only (not headers / trailing gap).
-	if fields.vlines then
-		local top = layout.data_top_y
-		local text_h = 14
-		local h = last_row_y + text_h - top
-		if h < 1 then
-			h = 1
-		end
-		for _, vline in ipairs(fields.vlines) do
-			local pos = vline:GetWndPos()
-			vline:SetWndPos(vector2():set(pos.x, top))
-			vline:SetWndSize(vector2():set(1, h))
-		end
-	end
 	fields.dlg:Show(true)
 	return true
 end

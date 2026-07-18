@@ -16,6 +16,9 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_ammo_order">
 		<text>Ammo row ordering</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_ammo_order_desc">
+		<text>Order for damage-table / DMG vs Stalkers / DMG vs Mutants rows. Default matches the tooltip ammo icons; or sort by DMG desc or AP desc.</text>
+	</string>
 	<string id="dorn_weapon_tooltip_main_ammo_order_lst_default">
 		<text>Match default ammo order</text>
 	</string>
@@ -28,25 +31,37 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_calc_range">
 		<text>Assumed range (meters) for damage calculations</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_calc_range_desc">
+		<text>Distance used for damage math (damage table and DMG stats). Default 20m. Matches live CQC range_factor.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_pellet_hit_pct">
+		<text>Pellets assumed to hit (%)</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_pellet_hit_pct_desc">
+		<text>For buckshot/multi-pellet ammo only: fraction of pellets counted in damage table and DMG vs Stalkers/Mutants. Default 100% (all pellets); slider 1-100. Effective pellet count never goes below 1. Slugs and single-projectile rounds are unchanged.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_drop_range">
 		<text>Range for Dispersion/Drop (meters)</text>
 	</string>
-	<string id="dorn_weapon_tooltip_drop_range">
-		<text>Distance used by Dispersion (lateral miss from Base Spread) and Bullet Drop.</text>
+	<string id="ui_mcm_dorn_weapon_tooltip_drop_range_desc">
+		<text>Distance used by Dispersion (lateral miss from Base Spread) and Bullet Drop. Default 200m; slider 100-2000.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_burst_threshold">
 		<text>Burst Size climb target (degrees)</text>
 	</string>
-	<string id="dorn_weapon_tooltip_burst_threshold">
-		<text>ADS camera climb angle used by Burst Size (how many shots until recoil reaches this many degrees).</text>
+	<string id="ui_mcm_dorn_weapon_tooltip_burst_threshold_desc">
+		<text>ADS camera climb angle for Burst Size (shots until recoil reaches this many degrees). Default 3; slider 1-10, step 0.5.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer">
 		<text>Apply silencer damage/AP boost when equipped</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_desc">
+		<text>When on (default), multiply stalker damage/AP by CQC's x1.07 if a silencer is attached or integrated. Mutant damage never gets this boost.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_stat_row_placement">
 		<text>Where to place new stats list rows</text>
 	</string>
-	<string id="dorn_weapon_tooltip_stat_row_placement">
+	<string id="ui_mcm_dorn_weapon_tooltip_stat_row_placement_desc">
 		<text>Companions (Dispersion, Base Spread, Move Spread, etc.) follow this. Hit Power / DMG vs Stalkers / DMG vs Mutants always lead unless End of list.</text>
 	</string>
 	<string id="dorn_weapon_tooltip_main_stat_row_placement_lst_inline">
@@ -64,8 +79,14 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_show_damage_table">
 		<text>Show damage table</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_damage_table_desc">
+		<text>Per-ammo damage breakdown under the weapon description (Type, AP, vs Torso Armor, vs Head Armor).</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_column_headers">
 		<text>Damage table column headers</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_column_headers_desc">
+		<text>How armor columns are labeled: tier names (Min/Lgt/...), raw bone-armor floats, or those floats x100 floored to integers.</text>
 	</string>
 	<string id="dorn_weapon_tooltip_main_column_headers_lst_names">
 		<text>Armor tier names [Min, Lgt, Lgt+, Mid, ...]</text>
@@ -79,59 +100,113 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_table">
 		<text>Damage table uses barrel condition</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_table_desc">
+		<text>When on, damage-table math uses the live WPO barrel-part condition. Off (default) assumes 100% barrel.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_hdr_stat_list">
 		<text>Stat List</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_stats">
 		<text>Damage stats use barrel condition</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_stats_desc">
+		<text>When on, Hit Power / DMG vs Stalkers / DMG vs Mutants use the live WPO barrel-part condition. Off (default) assumes 100% barrel.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_accuracy">
 		<text>%c[dark_gray]Show Accuracy Stat%c[default]</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_accuracy_desc">
+		<text>Show or hide the stock Accuracy row on weapon tooltips.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_dispersion">
 		<text>Show Dispersion Stat</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_dispersion_desc">
+		<text>Base Spread angle as distance off target at the Dispersion/Drop range: range x tan(Base Spread). Shown above Base Spread.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_base_spread">
 		<text>Show Base Spread Stat</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_base_spread_desc">
+		<text>Weapon fire_dispersion_base in degrees (ADS bullet cone). E.g. 0.35 means up to 0.35 degrees off center.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_handling">
 		<text>%c[dark_gray]Show Handling Stat%c[default]</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_handling_desc">
+		<text>Show or hide the stock Handling row on weapon tooltips.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_movement_spread">
 		<text>Show Move Spread Stat</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_movement_spread_desc">
+		<text>Total hip-fire cone while running (Base Spread + actor run PDM), in degrees. Not applied while ADS.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_hit_power">
 		<text>Show Hit Power Stat</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_hit_power_desc">
+		<text>What % of base ammo damage this weapon inflicts. Useful for comparing guns that share ammo types.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_stalker_damage">
 		<text>Show DMG vs Stalkers Stat</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_stalker_damage_desc">
+		<text>Per-ammo torso damage vs stalkers (no armor). Uses assumed range, silencer boost when MCM on, and optional barrel condition.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_mutant_damage">
 		<text>Show DMG vs Mutants Stat</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_mutant_damage_desc">
+		<text>Per-ammo damage vs mutants (before species-specific modifiers). No silencer boost (matches live CQC).</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_fire_rate">
 		<text>%c[dark_gray]Show Fire Rate Stat%c[default]</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_fire_rate_desc">
+		<text>Show or hide the stock Fire Rate row on weapon tooltips.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_mag_size">
 		<text>%c[dark_gray]Show Mag Size Stat%c[default]</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_mag_size_desc">
+		<text>Show or hide the stock Mag Size row on weapon tooltips.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_muzzle_velocity">
 		<text>%c[dark_gray]Show Muzzle Velocity Stat%c[default]</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_muzzle_velocity_desc">
+		<text>Show or hide the stock Muzzle Velocity row on weapon tooltips.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_bullet_drop">
 		<text>Show Bullet Drop Stat</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_bullet_drop_desc">
+		<text>How far a bullet drops over the Dispersion/Drop range (default 200m).</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_reliability">
 		<text>%c[dark_gray]Show Reliability Stat%c[default]</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_reliability_desc">
+		<text>Show or hide the stock Reliability row on weapon tooltips.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_wear">
 		<text>Show Bullet Wear Stat</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_wear_desc">
+		<text>Average condition lost per shot (avg ammo impair x condition_shot_dec), as a % of total condition.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_recoil">
 		<text>%c[dark_gray]Show Recoil Control Stat%c[default]</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_recoil_desc">
+		<text>Show or hide the stock Recoil Control row on weapon tooltips.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_burst_control">
 		<text>Show Burst Size Stat</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_burst_control_desc">
+		<text>Consecutive ADS shots (at max fire rate) until camera climb reaches the Burst Size climb target.</text>
 	</string>
 
 	<!-- In-game tooltip stat labels (Stat List order) -->
@@ -205,11 +280,13 @@
 			\n%c[d_green]DMG vs Stalkers%c[default]
 			\n - New stat for per-ammo torso damage vs stalkers (does not account for armor).
 			\n - Math: (hit_power / range_factor) x ammo_k_hit x torso_mult (0.9) x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x silencer (1.07 if equipped and MCM on).
+			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1.
 			\n - Per-ammo values are colored like the damage-table Type labels.
 			\n
 			\n%c[d_green]DMG vs Mutants%c[default]
 			\n - New stat for per-ammo damage vs mutants (before mutant specific modifiers).
 			\n - Math: (hit_power / range_factor) x ammo_k_hit x pellets x mut_mult (0.85) x mut_ammo_mult x barrel_cond x difficulty (no silencer; matches CQC).
+			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1.
 			\n - Per-ammo values are colored like the damage-table Type labels.
 			\n
 			\n%c[d_green]Bullet Drop%c[default]
@@ -245,7 +322,8 @@
 			\n - %c[d_blue]range_factor%c[default] = 1 + (range / 200) x k_air x 0.5 / (1 - k_air + 0.1)
 			\n - %c[d_blue]bone_mult%c[default] = 0.9 (torso) / 3.65 (head)
 			\n - %c[d_blue]silencer%c[default] = 1.07 if MCM apply_silencer is on and a silencer is attached (or integrated); else 1
-			\n - %c[d_blue]power%c[default] = (hit_power / %c[d_blue]range_factor%c[default]) x ammo_k_hit x %c[d_blue]bone_mult%c[default] x tier_ap_scale x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x %c[d_blue]silencer%c[default] x 100
+			\n - %c[d_blue]pellets%c[default] = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1 (default 100%)
+			\n - %c[d_blue]power%c[default] = (hit_power / %c[d_blue]range_factor%c[default]) x ammo_k_hit x %c[d_blue]bone_mult%c[default] x tier_ap_scale x 1.1 x %c[d_blue]pellets%c[default] x barrel_cond x difficulty x npc_ammo_mult x %c[d_blue]silencer%c[default] x 100
 			\n - %c[d_blue]combat_ap%c[default] = (k_ap x 10) x tier_ap_scale x barrel_cond / range_factor x 0.80 x difficulty x %c[d_blue]silencer%c[default]
 			\n - IF %c[d_blue]combat_ap%c[default] &gt;= armor OR armor is 0 THEN  %c[d_red]damage%c[default] = %c[d_blue]power%c[default]
 			\n - ELSE %c[d_red]damage%c[default] = %c[d_blue]power%c[default] x avg_hit_fraction END
@@ -344,7 +422,13 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_debug_log">
 		<text>Enable debug logging</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_debug_log_desc">
+		<text>Write tooltip debug lines to the game log (xray_*.log).</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_debug_overlay">
 		<text>Show debug overlay</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_debug_overlay_desc">
+		<text>Show the crosshair rangefinder / debug overlay via DORN.dbg.</text>
 	</string>
 </string_table>
