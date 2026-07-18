@@ -589,7 +589,8 @@ local function apply_custom_stat_display(info, obj, sec)
 							or cap == ENHANCED_STAT_LABELS.ammo_damage
 							or cap == ENHANCED_STAT_LABELS.bullet_drop
 							or cap == ENHANCED_STAT_LABELS.dispersion
-							or cap == ENHANCED_STAT_LABELS.burst_control then
+							or cap == ENHANCED_STAT_LABELS.burst_control
+							or cap == ENHANCED_STAT_LABELS.barrel_wear then
 							ele.txt:SetTextComplexMode(true)
 						end
 						ele.txt:SetText(custom)
@@ -2239,7 +2240,7 @@ local function build_white_stat_xml(handler, obj, sec, gr, stat)
 	local st_txt = STAT_XML:InitTextWnd("item_info:stats_box:prog_txt", st)
 	if gr.name == "ui_dorn_wpn_ammo_torso" or gr.name == "ui_dorn_wpn_stalker_damage"
 		or gr.name == "ui_dorn_wpn_bullet_drop" or gr.name == "ui_dorn_wpn_dispersion"
-		or gr.name == "ui_dorn_wpn_burst_control" then
+		or gr.name == "ui_dorn_wpn_burst_control" or gr.name == "ui_dorn_wpn_barrel_wear" then
 		st_txt:SetTextComplexMode(true)
 	end
 	st_txt:SetText(value)
