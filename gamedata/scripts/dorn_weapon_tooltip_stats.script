@@ -1,6 +1,6 @@
 --[[
 	Extra weapon stat rows for Dorn's Weapon Tooltip (Dispersion, Base Spread,
-	Move Spread, Bullet Wear, Burst Size, Bullet Drop). Loaded before
+	Move Spread, Weapon Wear, Barrel Wear, Burst Size, Bullet Drop). Loaded before
 	zz_dorn_weapon_tooltip_main, which registers them in utils_ui.stats_table.
 
 	X-Ray binds this file's environment to global dorn_weapon_tooltip_stats.
@@ -56,6 +56,7 @@ NAME = {
 	base_spread = "ui_dorn_wpn_base_spread",
 	movement_spread = "ui_dorn_wpn_movement_spread",
 	weapon_wear = "ui_dorn_wpn_weapon_wear",
+	barrel_wear = "ui_dorn_wpn_barrel_wear",
 	burst_control = "ui_dorn_wpn_burst_control",
 	bullet_drop = "ui_dorn_wpn_bullet_drop",
 }
@@ -245,7 +246,7 @@ function text_movement_spread(obj, sec)
 	return fmt_deg(run)
 end
 
--- Average condition loss per shot (no silencer): condition_shot_dec x impair.
+-- Average weapon-condition loss per shot (no silencer): condition_shot_dec x impair.
 function text_weapon_wear(obj, sec)
 	sec = resolve_sec(obj, sec)
 	if not is_weapon_section(sec) then
@@ -262,7 +263,9 @@ function text_weapon_wear(obj, sec)
 	local n = 0
 	if ammo_list then
 		for _, ammo_sec in ipairs(ammo_list) do
-			if ini_sys:section_exist(ammo_sec) and ammo_sec:find("bad", 1, true) == nil then
+			if ini_sys:section_exist(ammo_sec)
+				and ammo_sec:sub(-8) ~= "_verybad"
+				and ammo_sec:sub(-4) ~= "_bad" then
 				local impair = ini_sys:r_float_ex(ammo_sec, "impair") or 1
 				sum = sum + dec * impair
 				n = n + 1
@@ -277,7 +280,7 @@ function text_weapon_wear(obj, sec)
 	local avg_pct = (sum / n) * 100
 	if avg_pct <= 0 then
 		log_once("wear_zero:" .. tostring(sec), string.format(
-			"bullet_wear [%s]: 0%% (dec=%s ammo_n=%s)",
+			"weapon_wear [%s]: 0%% (dec=%s ammo_n=%s)",
 			tostring(sec), tostring(dec), tostring(n)))
 		return "0%"
 	end
@@ -288,6 +291,33 @@ function text_weapon_wear(obj, sec)
 		return string.format("%.1f%%", avg_pct)
 	end
 	return string.format("%.0f%%", avg_pct)
+end
+
+-- GAMMA WPO: chance per shot to lose 1% barrel while weapon condition is under
+-- the parts-damage threshold (default 85%). Matches arti_jamming.calculate_damage:
+-- roll < weapon_degradation x condition_shot_dec x 15000 out of 1000.
+function text_barrel_wear(obj, sec)
+	sec = resolve_sec(obj, sec)
+	if not is_weapon_section(sec) then
+		return nil
+	end
+	local dec = wpn_param(obj, sec, "condition_shot_dec", 0)
+	if dec < 0 then
+		dec = 0
+	end
+	local deg = 0.5
+	if game_difficulties and game_difficulties.get_eco_factor then
+		deg = tonumber(game_difficulties.get_eco_factor("weapon_degradation")) or 0.5
+	end
+	-- damage_chance / 1000 * 100 = damage_chance / 10
+	local chance_pct = (deg * dec * 15000) / 10
+	if chance_pct <= 0 then
+		log_once("barrel_wear_zero:" .. tostring(sec), string.format(
+			"barrel_wear [%s]: 0%% (dec=%s deg=%s)",
+			tostring(sec), tostring(dec), tostring(deg)))
+		return "0.00%"
+	end
+	return string.format("%.2f%%", chance_pct)
 end
 
 -- Fractional ADS shots until cumulative vertical camera climb reaches RECOIL_KICK_THRESHOLD.
@@ -407,6 +437,7 @@ local TEXT_BY_NAME = {
 	[NAME.base_spread] = text_base_spread,
 	[NAME.movement_spread] = text_movement_spread,
 	[NAME.weapon_wear] = text_weapon_wear,
+	[NAME.barrel_wear] = text_barrel_wear,
 	[NAME.burst_control] = text_burst_control,
 	[NAME.bullet_drop] = text_bullet_drop,
 }
@@ -415,7 +446,8 @@ local STAT_SHORT = {
 	[NAME.dispersion] = "dispersion",
 	[NAME.base_spread] = "base_spread",
 	[NAME.movement_spread] = "move_spread",
-	[NAME.weapon_wear] = "bullet_wear",
+	[NAME.weapon_wear] = "weapon_wear",
+	[NAME.barrel_wear] = "barrel_wear",
 	[NAME.burst_control] = "burst_control",
 	[NAME.bullet_drop] = "bullet_drop",
 }

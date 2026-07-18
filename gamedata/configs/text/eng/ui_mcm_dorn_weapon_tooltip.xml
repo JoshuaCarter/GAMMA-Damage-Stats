@@ -52,12 +52,6 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_burst_threshold_desc">
 		<text>ADS camera climb angle used when counting consecutive shots for Burst Size.</text>
 	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer">
-		<text>Apply silencer damage/AP boost when equipped</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_desc">
-		<text>x1.07 on stalker damage/AP for attached or integrated silencers. Mutants never get this.</text>
-	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_stat_row_placement">
 		<text>Where to place new stats list rows</text>
 	</string>
@@ -103,6 +97,12 @@
 	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_table_desc">
 		<text>Off assumes a perfect barrel (live WPO barrel part when on).</text>
 	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_table">
+		<text>Damage table uses silencer boost when equipped</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_table_desc">
+		<text>x1.07 on stalker damage/AP in the table (and AP color scale). Mutants never get this.</text>
+	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_hdr_stat_list">
 		<text>Stat List</text>
 	</string>
@@ -110,7 +110,13 @@
 		<text>Damage stats use barrel condition</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_stats_desc">
-		<text>Off assumes a perfect barrel. Affects Hit Power and both DMG stats.</text>
+		<text>Off assumes a perfect barrel. Affects both DMG stats.</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_stats">
+		<text>Damage stats use silencer boost when equipped</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_apply_silencer_stats_desc">
+		<text>x1.07 on DMG vs Stalkers. Mutants never get this.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_accuracy">
 		<text>%c[dark_gray]Show Accuracy Stat%c[default]</text>
@@ -191,10 +197,16 @@
 		<text>Vanilla GAMMA row.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_wear">
-		<text>Show Bullet Wear Stat</text>
+		<text>Show Weapon Wear Stat</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_weapon_wear_desc">
-		<text>Avg condition lost per shot (ammo impair x condition_shot_dec).</text>
+		<text>Avg weapon-condition lost per shot (ammo impair x condition_shot_dec).</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_barrel_wear">
+		<text>Show Barrel Wear Stat</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_show_barrel_wear_desc">
+		<text>Per-shot chance to lose 1% barrel while weapon condition is under 85%.</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_show_recoil">
 		<text>%c[dark_gray]Show Recoil Control Stat%c[default]</text>
@@ -232,7 +244,13 @@
 		<text>Bullet Drop</text>
 	</string>
 	<string id="ui_dorn_wpn_weapon_wear">
-		<text>Bullet Wear</text>
+		<text>Weapon Wear</text>
+	</string>
+	<string id="ui_dorn_wpn_barrel_wear">
+		<text>Barrel Wear</text>
+	</string>
+	<string id="ui_dorn_wpn_weapon_condition">
+		<text>Weapon Condition</text>
 	</string>
 	<string id="ui_dorn_wpn_burst_control">
 		<text>Burst Size</text>
@@ -250,7 +268,7 @@
 			- Uses ballistic calculations from live CQC grok_bo / ammo (CQC loads above GBOOBS).
 			\n- Assumed range is set by MCM (default 20m). Barrel condition is treated as 100% unless you toggle to use the live WPO barrel part.
 			\n- Damage numbers also always factor in current difficulty and weapon hit power.
-			\n- Attachments are ignored except silencers: when MCM "Apply silencer..." is on (default), stalker damage/AP use CQC's x1.07 if a silencer is equipped or integrated. Mutant damage never applies it (matches CQC). Artifacts, medicines, etc. are still ignored.
+			\n- Attachments are ignored except silencers: Damage Table and Stat List each have their own MCM toggle (both on by default). When on, stalker damage/AP use CQC's x1.07 if a silencer is equipped or integrated. Mutant damage never applies it (matches CQC). Artifacts, medicines, etc. are still ignored.
 			\n- Ammo rows (damage table, DMG vs Stalkers, and DMG vs Mutants) default to the same order as the tooltip ammo icons. MCM can instead sort DMG desc or AP desc.
 		</text>
 	</string>
@@ -279,22 +297,27 @@
 			\n
 			\n%c[d_green]DMG vs Stalkers%c[default]
 			\n - New stat for per-ammo torso damage vs stalkers (does not account for armor).
-			\n - Math: (hit_power / range_factor) x ammo_k_hit x torso_mult (0.9) x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x silencer (1.07 if equipped and MCM on).
-			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1.
+			\n - Math: (hit_power / range_factor) x ammo_k_hit x torso_mult (0.9) x 1.1 x pellets x barrel_cond x difficulty x npc_ammo_mult x silencer (1.07 if equipped and stats silencer MCM on).
+			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100), floored at 1; single-projectile ammo stays 1.
 			\n - Per-ammo values are colored like the damage-table Type labels.
 			\n
 			\n%c[d_green]DMG vs Mutants%c[default]
 			\n - New stat for per-ammo damage vs mutants (before mutant specific modifiers).
 			\n - Math: (hit_power / range_factor) x ammo_k_hit x pellets x mut_mult (0.85) x mut_ammo_mult x barrel_cond x difficulty (no silencer; matches CQC).
-			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1.
+			\n - pellets = buck_shot x (MCM Pellets assumed to hit % / 100), floored at 1; single-projectile ammo stays 1.
 			\n - Per-ammo values are colored like the damage-table Type labels.
 			\n
 			\n%c[d_green]Bullet Drop%c[default]
 			\n - How far a bullet drops over the MCM Dispersion/Drop range (default 200m; slider 100-2000).
 			\n
-			\n%c[d_green]Bullet Wear%c[default]
-			\n - Average condition lost per shot (avg ammo impair x condition_shot_dec).
-			\n - Shown as a percentage of total condition.
+			\n%c[d_green]Weapon Wear%c[default]
+			\n - Average weapon-condition lost per shot (avg ammo impair x condition_shot_dec).
+			\n - Shown as a percentage of total condition. This is the overall weapon condition bar, not the WPO barrel part.
+			\n
+			\n%c[d_green]Barrel Wear%c[default]
+			\n - Per-shot chance to lose 1% WPO barrel condition while weapon condition is under 85% (GAMMA WPO / Unjam patch). Above 85%, barrel does not wear from shooting.
+			\n - Math: (weapon_degradation x condition_shot_dec x 15000) / 10 percent. weapon_degradation comes from the economy difficulty factor (often 0.5).
+			\n - Example: degradation 0.5 and condition_shot_dec 0.0008 -> 0.60% per shot (only while under 85% weapon condition).
 			\n
 			\n%c[d_green]Burst Size%c[default]
 			\n - How many consecutive ADS shots (at max fire rate) it takes for the camera to climb to the MCM Burst Size climb target (default 3 degrees; slider 1-10, step 0.5).
@@ -314,6 +337,7 @@
 			\n
 			\n%c[d_green]Table notes%c[default]:
 			\n - Damage numbers are mainly a reflection of your opening salvo, as once an armor segment (head/torso+arms/legs) is broken, you will do near-full damage to that segment regardless of AP.
+			\n - Shows up to 4 ammo rows; if a weapon has more, the title shows DAMAGE (+N) for the omitted count (full list still appears in the DMG stats).
 			\n - Column headers can show short armor-class names (Min/Lgt/...), the raw bone-armor floats used in the math, or those floats x100 floored to integers (e.g. 0.075 -> 7).
 			\n - avg_hit_fraction uses the average hit_fraction for profiles at that exact armor value only.
 			\n - Full armor-value list (including rare tiers skipped in the table) is under Useful Info section.
@@ -321,8 +345,8 @@
 			\n%c[d_green]Math%c[default] (live CQC grok_bo):
 			\n - %c[d_blue]range_factor%c[default] = 1 + (range / 200) x k_air x 0.5 / (1 - k_air + 0.1)
 			\n - %c[d_blue]bone_mult%c[default] = 0.9 (torso) / 3.65 (head)
-			\n - %c[d_blue]silencer%c[default] = 1.07 if MCM apply_silencer is on and a silencer is attached (or integrated); else 1
-			\n - %c[d_blue]pellets%c[default] = buck_shot x (MCM Pellets assumed to hit % / 100); single-projectile ammo stays 1 (default 100%)
+			\n - %c[d_blue]silencer%c[default] = 1.07 if the section's MCM silencer toggle is on and a silencer is attached (or integrated); else 1
+			\n - %c[d_blue]pellets%c[default] = buck_shot x (MCM Pellets assumed to hit % / 100), floored at 1; single-projectile ammo stays 1 (default 100%)
 			\n - %c[d_blue]power%c[default] = (hit_power / %c[d_blue]range_factor%c[default]) x ammo_k_hit x %c[d_blue]bone_mult%c[default] x tier_ap_scale x 1.1 x %c[d_blue]pellets%c[default] x barrel_cond x difficulty x npc_ammo_mult x %c[d_blue]silencer%c[default] x 100
 			\n - %c[d_blue]combat_ap%c[default] = (k_ap x 10) x tier_ap_scale x barrel_cond / range_factor x 0.80 x difficulty x %c[d_blue]silencer%c[default]
 			\n - IF %c[d_blue]combat_ap%c[default] &gt;= armor OR armor is 0 THEN  %c[d_red]damage%c[default] = %c[d_blue]power%c[default]
@@ -409,7 +433,7 @@
 			\n
 			\n%c[d_green]Silencers%c[default]:
 			\n - Live CQC multiplies stalker combat damage and AP x1.07 when a silencer is attached (or the weapon has an integrated suppressor).
-			\n - This tooltip applies that same x1.07 to the damage table, DMG vs Stalkers, and AP color scale when MCM "Apply silencer..." is on (default) and the inspected weapon has a silencer.
+			\n - Damage Table and Stat List each have their own MCM toggle (both on by default). Table toggle affects the damage table and AP color scale; stats toggle affects DMG vs Stalkers.
 			\n - DMG vs Mutants does not get the silencer boost (matches live CQC).
 			\n - Boomsticks mod still multiplies muzzle velocity x0.9 and cam recoil x0.82 when attached.
 		</text>

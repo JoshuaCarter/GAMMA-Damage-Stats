@@ -41,7 +41,7 @@ function on_mcm_load()
 						min = 0,
 						max = 200,
 						step = 1,
-						def = 20,
+						def = 30,
 						hint = "dorn_weapon_tooltip_calc_range",
 					},
 					{
@@ -73,13 +73,6 @@ function on_mcm_load()
 						step = 0.5,
 						def = 3,
 						hint = "dorn_weapon_tooltip_burst_threshold",
-					},
-					{
-						id = "apply_silencer",
-						type = "check",
-						val = 1,
-						def = true,
-						hint = "dorn_weapon_tooltip_apply_silencer",
 					},
 					{
 						id = "stat_row_placement",
@@ -114,8 +107,8 @@ function on_mcm_load()
 						hint = "dorn_weapon_tooltip_column_headers",
 						content = {
 							{ "names", "names" },
-							{ "raw", "raw" },
 							{ "raw100", "raw100" },
+							{ "raw", "raw" },
 						},
 					},
 					{
@@ -124,6 +117,13 @@ function on_mcm_load()
 						val = 1,
 						def = false,
 						hint = "dorn_weapon_tooltip_use_condition_table",
+					},
+					{
+						id = "apply_silencer_table",
+						type = "check",
+						val = 1,
+						def = false,
+						hint = "dorn_weapon_tooltip_apply_silencer_table",
 					},
 					{ id = "line_damage_table", type = "line" },
 					{
@@ -137,6 +137,13 @@ function on_mcm_load()
 						val = 1,
 						def = false,
 						hint = "dorn_weapon_tooltip_use_condition_stats",
+					},
+					{
+						id = "apply_silencer_stats",
+						type = "check",
+						val = 1,
+						def = false,
+						hint = "dorn_weapon_tooltip_apply_silencer_stats",
 					},
 					{
 						id = "show_hit_power",
@@ -235,6 +242,13 @@ function on_mcm_load()
 						val = 1,
 						def = true,
 						hint = "dorn_weapon_tooltip_show_weapon_wear",
+					},
+					{
+						id = "show_barrel_wear",
+						type = "check",
+						val = 1,
+						def = true,
+						hint = "dorn_weapon_tooltip_show_barrel_wear",
 					},
 					{
 						id = "show_recoil",
