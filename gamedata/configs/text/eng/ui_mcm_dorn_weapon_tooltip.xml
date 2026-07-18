@@ -315,9 +315,8 @@
 			\n - Shown as a percentage of total condition. This is the overall weapon condition bar, not the WPO barrel part.
 			\n
 			\n%c[d_green]Barrel Wear%c[default]
-			\n - Per-shot chance to lose 1% WPO barrel condition while weapon condition is under 85% (GAMMA WPO / Unjam patch). Above 85%, barrel does not wear from shooting.
+			\n - Per-shot chance to lose 1% WPO barrel condition while weapon condition is under 85%. Above 85%, barrel does not wear from shooting.
 			\n - Math: (weapon_degradation x condition_shot_dec x 15000) / 10 percent. weapon_degradation comes from the economy difficulty factor (often 0.5).
-			\n - Example: degradation 0.5 and condition_shot_dec 0.0008 -> 0.60% per shot (only while under 85% weapon condition).
 			\n
 			\n%c[d_green]Burst Size%c[default]
 			\n - How many consecutive ADS shots (at max fire rate) it takes for the camera to climb to the MCM Burst Size climb target (default 3 degrees; slider 1-10, step 0.5).
