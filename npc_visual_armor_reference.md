@@ -6,25 +6,25 @@
 
 **GAMMA repair** = modal `repair_type` of outfits those visuals tend to drop (`death_outfits` → Outfits Balances). Ladder is novice → light → medium → heavy → exo (Nosorog is still exo). Percents below are among mapped models at that bone value (some visuals have no death-outfit join).
 
-**Ammo pen** = rough share of standard GBOOBS firearm ammo that pens that bone armor at 20 m (`k_ap × ap_scale / range_atten ≥ armor`). Uses the **live GBOOBS** `grok_bo` math (no CQC `×10`, no difficulty / `×0.80` tail — GBOOBS overwrites CQC’s script in the modlist). Head values model `bip01_head` (no eye/eyelid AP boost). Excludes `_bad` / `_verybad`, knives, batteries, and grenades (~48 rounds). Rounded to nearest 5%.
+**Ammo pen** = rough share of standard live firearm ammo that pens that bone armor at 20 m under **CQC** `grok_bo` math: `(k_ap × 10) × ap_scale / range_atten × 0.80` (difficulty mult = 1.0 for this table). CQC loads above GBOOBS, so CQC owns `grok_bo` and `weapon_ammo.ltx`. Head values model `bip01_head` (no eye/eyelid AP boost). Excludes `_bad` / `_verybad`, knives, batteries, and grenades (~48 rounds). Rounded to nearest 5%.
 
 ### Torso
 
 | Table name | Armor | Count | Avg chip | Ammo pen | GAMMA repair |
 |---|---:|---:|---:|---:|---|
 | Min | 0.011 | 9 | 85% | ~100% | **novice** (about 89%) — clean novice bucket |
-| Lgt | 0.075 | 6 | 60% | ~95% | **medium** (about 75%), novice (about 25%) — leans medium; army/soldier minority is novice (`army_outfit`) |
-| Lgt+ | 0.100 | 8 | 50% | ~85% | **medium** (about 75% of mapped), some light/novice (about 12% each) — leans medium (Sunrise-ish); a few unmapped |
-| - | 0.125 | 1 | 40% | ~75% | **medium** (1/1) |
-| Mid | 0.150 | 24 | 48% | ~70% | **medium** (about 87% of mapped) — best medium representative; light about 9%, novice about 4% |
-| Mid+ | 0.200 | 13 | 37% | ~50% | **medium** (about 75% of mapped), heavy about 17%, exo about 8% — still medium overall, but messiest mid-tier (Berill/SEVA vs proto pull) |
-| Hvy | 0.250 | 10 | 30% | ~40% | **heavy** (100% of mapped) — clean start of heavy (SKAT / assault vest / `light_*` outfits) |
-| - | 0.300 | 1 | 30% | ~30% | **heavy** (exolight) |
-| - | 0.350 | 2 | 22% | ~25% | **heavy** (small n) |
-| Hvy+ | 0.400 | 4 | 20% | ~20% | **heavy** (100% of mapped) — mid-heavy / exolight-class, **not** exo kit |
-| - | 0.430 | 1 | 15% | ~15% | **exo** (Freedom heavy / full exo drop) |
-| Exo | 0.550 | 5 | 15% | ~10% | **exo** — standard full exo |
-| Max | 0.650 | 2 | 15% | ~10% | **exo** — top exo / Nosorog (same exo kit) |
+| Lgt | 0.075 | 6 | 60% | ~80% | **medium** (about 75%), novice (about 25%) — leans medium; army/soldier minority is novice (`army_outfit`) |
+| Lgt+ | 0.100 | 8 | 50% | ~70% | **medium** (about 75% of mapped), some light/novice (about 12% each) — leans medium (Sunrise-ish); a few unmapped |
+| - | 0.125 | 1 | 40% | ~65% | **medium** (1/1) |
+| Mid | 0.150 | 24 | 48% | ~60% | **medium** (about 87% of mapped) — best medium representative; light about 9%, novice about 4% |
+| Mid+ | 0.200 | 13 | 37% | ~35% | **medium** (about 75% of mapped), heavy about 17%, exo about 8% — still medium overall, but messiest mid-tier (Berill/SEVA vs proto pull) |
+| Hvy | 0.250 | 10 | 30% | ~25% | **heavy** (100% of mapped) — clean start of heavy (SKAT / assault vest / `light_*` outfits) |
+| - | 0.300 | 1 | 30% | ~20% | **heavy** (exolight) |
+| - | 0.350 | 2 | 22% | ~10% | **heavy** (small n) |
+| Hvy+ | 0.400 | 4 | 20% | ~10% | **heavy** (100% of mapped) — mid-heavy / exolight-class, **not** exo kit |
+| - | 0.430 | 1 | 15% | ~10% | **exo** (Freedom heavy / full exo drop) |
+| Exo | 0.550 | 5 | 15% | ~5% | **exo** — standard full exo |
+| Max | 0.650 | 2 | 15% | ~5% | **exo** — top exo / Nosorog (same exo kit) |
 
 **Picking a “medium” column:** prefer **0.150** over **0.200** — more profiles, higher medium purity (about 87% vs about 75%), less heavy/exo bleed. **0.100** is also medium-leaning but thinner and more light/novice noise. **0.075** is the weak “Light” label — mostly medium repair, not GAMMA light kits.
 
@@ -35,22 +35,22 @@
 | Table name | Armor | Count | Avg chip | Ammo pen | GAMMA repair |
 |---|---:|---:|---:|---:|---|
 | Min | 0 | 39 | n/a (always full damage) | ~100% | mixed (body drives drop class) — not a useful repair signal |
-| Lgt | 0.150 | 7 | 41% | ~70% | mostly tracks **medium** bodies |
-| Mid | 0.200 | 13 | 44% | ~60% | mostly **medium** bodies |
-| Hvy | 0.300 | 26 | 33% | ~35% | mixed medium/heavy/exo bodies — weak repair signal |
-| Max | 0.350 | 1 | 15% | ~20% | **exo** (Nosorog) |
+| Lgt | 0.150 | 7 | 41% | ~55% | mostly tracks **medium** bodies |
+| Mid | 0.200 | 13 | 44% | ~40% | mostly **medium** bodies |
+| Hvy | 0.300 | 26 | 33% | ~20% | mixed medium/heavy/exo bodies — weak repair signal |
+| Max | 0.350 | 1 | 15% | ~10% | **exo** (Nosorog) |
 
 Head bone armor does not track repair kits cleanly; same suit family wears many helm variants.
 
 ---
 
-Source chain (GBO / CQC):
+Source chain (load order: higher wins):
 
 1. NPC visual → `grok_bo_models_capture.ltx` → capture model
-2. Capture `bones_protection_sect` → `grok_bo_bone_profiles.ltx` (CQC over GBOOBS)
+2. Capture `bones_protection_sect` → `grok_bo_bone_profiles.ltx` (**CQC** over GBOOBS)
 3. `bone_profile` / `head_profile` → floats in Outfits Balances `damages.ltx`
 
-**Torso armor** = `bip01_spine` bone armor (compared to combat AP in GBO damage).
+**Torso armor** = `bip01_spine` bone armor (compared to combat AP in live CQC damage).
 **Head armor** = `bip01_head` (no eye/eyelid AP boost in these columns).
 
 Count: **86** unique capture models used by actor visuals (105 bone profile sections exist; 19 are never a `model_path`). Torso range: **0.011–0.650**. Head range: **0–0.350**.

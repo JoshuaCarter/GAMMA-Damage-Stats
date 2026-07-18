@@ -38,7 +38,7 @@
 
 	4. calc_range - assumed distance in meters for damage math (0-200, default 20).
 
-	5. use_condition_table / use_condition_stats - when on, apply GBOOBS
+	5. use_condition_table / use_condition_stats - when on, apply CQC
 	   barrel-condition factors to the damage table / slash damage stats
 	   (off = assume 100%).
 
@@ -152,21 +152,22 @@ local HEAD_TIERS = {
 local NUM_TORSO_TIERS = #TORSO_TIERS
 local NUM_HEAD_TIERS = #HEAD_TIERS
 
--- Live combat math follows GBOOBS grok_bo (overwrites CQC in the modlist):
--- no k_ap x10, no final x0.80 AP tail.
--- Bone mults from GBOOBS stalker_damage (not CQC's 0.9 / 3.65).
--- Difficulty mult matches CQC/GAMMA diff_game type (GBOOBS dropped it; we still
--- apply it so tooltip numbers track the MCM Important Notes).
-local BONE_DMG_TORSO = 1.0   -- bip01_spine
-local BONE_DMG_HEAD  = 4.0   -- bip01_head
-local GBOOBS_BONUS   = 1.1
+-- Live combat math follows CQC grok_bo (higher load order than GBOOBS):
+-- combat AP = ini k_ap x10 x ap_scale x barrel / range_factor x 0.80 x difficulty.
+-- Bone mults from CQC stalker_damage. Difficulty from CQC/GAMMA diff_game type.
+-- Silencer x1.07 and sniper +0.05 AP omitted (generic unequipped tooltip).
+local BONE_DMG_TORSO = 0.9    -- bip01_spine
+local BONE_DMG_HEAD  = 3.65   -- bip01_head
+local BALLISTIC_BONUS = 1.1
+local K_AP_COMBAT_SCALE = 10  -- CQC: ini k_ap * 10 for combat
+local AP_TAIL = 0.80          -- CQC post-grouping AP adjustment
 local DIFFICULTY_MULT = {
 	[1] = 1.3,
 	[2] = 1.05,
 	[3] = 0.90,
 	[4] = 0.80,
 }
--- GBOOBS only adds head AP on eyes/eyelid (bone 16-18), not bip01_head.
+-- CQC head AP bonuses apply to eyes/eyelid/jaw/neck, not bip01_head.
 -- Our "vs Head" columns model bip01_head, so no AP boost.
 
 local function clamp(v, lo, hi)
@@ -401,7 +402,7 @@ local HIT_POWER_STAT = {
 }
 
 -- Flesh (mutant) damage per ammo type, table order: hit_power / range x k_hit x
--- pellets x GBOOBS mutant_mult 0.90 x ammo_mult x difficulty.
+-- pellets x CQC mutant_mult 0.85 x ammo_mult x difficulty.
 -- No species or weak-spot factors.
 local RAW_AMMO_DAMAGE_STAT = {
 	index = 3.5,
@@ -418,7 +419,7 @@ local RAW_AMMO_DAMAGE_STAT = {
 	value_functor = { "zz_dorn_weapon_tooltip_main", "prop_raw_ammo_damage_slash_flag" },
 }
 
--- Pre-armor stalker (NPC) torso damage per ammo at calc_range(): GBOOBS power
+-- Pre-armor stalker (NPC) torso damage per ammo at calc_range(): CQC power
 -- before AP/armor/chip. Outfit ap_scale omitted (1.0) so this is universal max
 -- before armor math. Same ammo order as the damage table.
 local STALKER_DAMAGE_STAT = {
@@ -825,7 +826,7 @@ local function calc_range()
 	return clamp(d, 0, 200)
 end
 
--- GBOOBS barrel part condition (0..1). Missing parts data => 1.0.
+-- Barrel part condition 0..1. Missing parts data => 1.0.
 local function raw_barrel_condition(obj)
 	if not obj then
 		return 1
@@ -847,14 +848,14 @@ local function raw_barrel_condition(obj)
 	return 1
 end
 
--- GBOOBS corrected barrel mult: stalker *1.3, mutant *1.6, capped at 1.
+-- CQC corrected barrel mult (same curve for stalker and mutant). Cap at 1.
 -- When use_condition is false, always 1.0 (100%).
 local function barrel_mult(obj, use_condition, kind)
 	if not use_condition then
 		return 1
 	end
-	local scale = (kind == "mutant") and 1.6 or 1.3
-	local corrected = raw_barrel_condition(obj) * scale
+	local bc = raw_barrel_condition(obj)
+	local corrected = (130 - (1.12 * bc)) * (bc * 1.12) / 100
 	if corrected > 1 then
 		return 1
 	end
@@ -883,11 +884,12 @@ local function difficulty_mult()
 	return 1.0
 end
 
--- Display AP (k_ap x 1000) needed for combat_ap to first penetrate 0.650 torso armor.
+-- Display AP (k_ap x 1000) needed for CQC combat_ap to first penetrate 0.650 torso armor.
 local function ap_pen_display_max()
 	local dist_mult = dist_atten(AP_COLOR_REF_AIR, calc_range())
-	local k_ap = AP_COLOR_ARMOR * dist_mult / AP_COLOR_AP_SCALE
-	return math.max(math.ceil(k_ap * AP_SCALE), 1)
+	local k_ap_ltx = AP_COLOR_ARMOR * dist_mult
+		/ (K_AP_COMBAT_SCALE * AP_COLOR_AP_SCALE * AP_TAIL * difficulty_mult())
+	return math.max(math.ceil(k_ap_ltx * AP_SCALE), 1)
 end
 
 local function ap_display_color(ap)
@@ -899,21 +901,34 @@ local function ap_display_color(ap)
 		math.floor(lerp(175, 0, t)))
 end
 
--- GBOOBS: k_ap x ap_scale x barrel / range_factor.
+-- CQC NPC ammo_mult (only 7.62x25 P is special).
+local function npc_ammo_mult(ammo_sec)
+	if ammo_sec == "ammo_7.62x25_p" or ammo_sec == "ammo_7.62x25_p_bad" then
+		return 1.75
+	end
+	return 1.0
+end
+
+-- CQC: (k_ap x10) x ap_scale x barrel / range_factor x 0.80 x difficulty.
 local function combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel)
-	return k_ap_ltx * ap_scale * (barrel or 1) / dist_atten(air_res, dist)
+	return (k_ap_ltx * K_AP_COMBAT_SCALE)
+		* ap_scale * (barrel or 1)
+		/ dist_atten(air_res, dist)
+		* AP_TAIL
+		* difficulty_mult()
 end
 
--- GBOOBS NPC power, plus difficulty and optional barrel factor.
-local function base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel)
+-- CQC NPC power, plus difficulty, optional barrel, and NPC ammo_mult.
+local function base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec)
 	return hit_power / dist_atten(air_res, dist)
-		* k_hit * bone_mult * ap_scale * GBOOBS_BONUS * pellet_mult
+		* k_hit * bone_mult * ap_scale * BALLISTIC_BONUS * pellet_mult
 		* difficulty_mult() * (barrel or 1)
+		* npc_ammo_mult(ammo_sec)
 end
 
-local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel)
+local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel, ammo_sec)
 	local ap = combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel)
-	local power = base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel)
+	local power = base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec)
 	-- Armor 0 (bare head): always full power; never apply chip hit_frac.
 	local penetrated = (armor <= 0) or (ap >= armor)
 	local dmg = penetrated and power or (power * hit_frac)
@@ -954,14 +969,14 @@ local function section_dmg_max(rows, section)
 	return hi
 end
 
-local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel)
+local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel, ammo_sec)
 	local bone_mult = headshot and BONE_DMG_HEAD or BONE_DMG_TORSO
 	local out = {}
 	for i, tier in ipairs(tiers) do
 		out[i] = effective_dmg(
 			hit_power, k_hit, k_ap_ltx, air_res, tier.armor,
 			tier.ap_scale, tier.hit_frac, bone_mult,
-			dist, pellet_mult, barrel
+			dist, pellet_mult, barrel, ammo_sec
 		)
 	end
 	return out
@@ -1067,11 +1082,11 @@ local function build_ammo_damage_rows(obj, sec)
 	for _, r in ipairs(rounds) do
 		local torso = fmt_tier_cells(calc_tier_damages(
 			hit_power, r.k_hit, r.k_ap, r.air_res, TORSO_TIERS,
-			false, dist, r.pellets, barrel
+			false, dist, r.pellets, barrel, r.sec
 		), NUM_TORSO_TIERS)
 		local head = fmt_tier_cells(calc_tier_damages(
 			hit_power, r.k_hit, r.k_ap, r.air_res, HEAD_TIERS,
-			true, dist, r.pellets, barrel
+			true, dist, r.pellets, barrel, r.sec
 		), NUM_HEAD_TIERS)
 		rows[#rows + 1] = {
 			label = r.label,
@@ -1119,18 +1134,18 @@ local function build_ammo_damage_rows(obj, sec)
 	}
 end
 
--- Mutant ammo_mult (default 0.85). Matches GBOOBS monster hit rules; Pseudogiant-only
+-- Mutant ammo_mult (default 0.85). Matches CQC monster hit rules; Pseudogiant-only
 -- overrides are intentionally omitted (this row is generic flesh damage).
-local MUTANT_BASE_MULT = 0.90
+local MUTANT_BASE_MULT = 0.85
 local MUTANT_AMMO_MULT_DEFAULT = 0.85
 local MUTANT_AMMO_MULT = {
-	["ammo_12x70_buck"] = 0.78,
-	["ammo_12x70_buck_bad"] = 0.78,
-	["ammo_20x70_buck"] = 0.78,
-	["ammo_23x75_shrapnel"] = 0.78,
-	["ammo_12x76_zhekan"] = 1.40,
-	["ammo_12x76_zhekan_bad"] = 1.40,
-	["ammo_23x75_barrikada"] = 2.50,
+	["ammo_12x70_buck"] = 0.90,
+	["ammo_12x70_buck_bad"] = 0.90,
+	["ammo_20x70_buck"] = 0.90,
+	["ammo_23x75_shrapnel"] = 1.00,
+	["ammo_12x76_zhekan"] = 1.00,
+	["ammo_12x76_zhekan_bad"] = 1.00,
+	["ammo_23x75_barrikada"] = 1.00,
 	["ammo_9x19_pbp"] = 1.00,
 	["ammo_9x19_pbp_bad"] = 1.00,
 	["ammo_9x18_pmm"] = 1.00,
@@ -1139,14 +1154,16 @@ local MUTANT_AMMO_MULT = {
 	["ammo_5.45x39_ep_bad"] = 1.00,
 	["ammo_5.56x45_ss190"] = 1.00,
 	["ammo_5.56x45_ss190_bad"] = 1.00,
-	["ammo_7.62x25_ps"] = 1.10,
-	["ammo_7.62x25_ps_bad"] = 1.10,
-	["ammo_357_hp_mag"] = 2.30,
-	["ammo_357_hp_mag_bad"] = 2.30,
-	["ammo_11.43x23_hydro"] = 1.25,
-	["ammo_11.43x23_hydro_bad"] = 1.25,
-	["ammo_11.43x23_fmj"] = 1.20,
-	["ammo_11.43x23_fmj_bad"] = 1.20,
+	["ammo_7.62x25_ps"] = 1.00,
+	["ammo_7.62x25_ps_bad"] = 1.00,
+	["ammo_7.62x25_p"] = 1.75,
+	["ammo_7.62x25_p_bad"] = 1.75,
+	["ammo_357_hp_mag"] = 1.00,
+	["ammo_357_hp_mag_bad"] = 1.00,
+	["ammo_11.43x23_hydro"] = 1.00,
+	["ammo_11.43x23_hydro_bad"] = 1.00,
+	["ammo_11.43x23_fmj"] = 1.00,
+	["ammo_11.43x23_fmj_bad"] = 1.00,
 }
 
 local function mutant_ammo_mult(ammo_sec)
@@ -1187,7 +1204,7 @@ format_raw_ammo_damage_slash = function(obj, sec)
 	return table.concat(parts, "/")
 end
 
--- Per-ammo pre-armor stalker torso damage at calc_range() (GBOOBS power, no AP/armor).
+-- Per-ammo pre-armor stalker torso damage at calc_range() (CQC power, no AP/armor).
 -- Same ammo order as the damage table.
 format_stalker_ammo_damage_slash = function(obj, sec)
 	local rounds = collect_sorted_ammo_rounds(obj, sec, nil)
@@ -1205,7 +1222,7 @@ format_stalker_ammo_damage_slash = function(obj, sec)
 	local parts = {}
 	for _, r in ipairs(rounds) do
 		local dmg = math.floor(
-			base_power(hit_power, r.k_hit, r.air_res, dist, BONE_DMG_TORSO, 1.0, r.pellets, barrel)
+			base_power(hit_power, r.k_hit, r.air_res, dist, BONE_DMG_TORSO, 1.0, r.pellets, barrel, r.sec)
 				* DAMAGE_SCALE + 0.5
 		)
 		parts[#parts + 1] = tostring(dmg)
