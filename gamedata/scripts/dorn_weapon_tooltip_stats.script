@@ -361,11 +361,13 @@ function text_barrel_wear(obj, sec)
 	if chance_pct <= 0 then
 		log_once("barrel_wear_zero:" .. tostring(sec), string.format(
 			"barrel_wear [%s]: 0%%", tostring(sec)))
-		chance_txt = "0.0%"
+		chance_txt = "0.0%%"
 	else
-		chance_txt = string.format("%.1f%%", chance_pct)
+		-- %% so complex-mode text keeps a literal percent.
+		chance_txt = string.format("%.1f%%%%", chance_pct)
 	end
-	return string.format("%s %%c[dark_gray]@ -1%%%%c[default]", chance_txt)
+	-- Literal "-1%" then reset: %%%% -> %%, %%c -> %c in the format result.
+	return string.format("%s %%c[dark_gray]@ -1%%%%%%c[default]", chance_txt)
 end
 
 -- Fractional ADS shots until cumulative vertical camera climb reaches RECOIL_KICK_THRESHOLD.

@@ -67,18 +67,6 @@
 	<string id="dorn_weapon_tooltip_main_stat_row_placement_lst_after">
 		<text>End of list</text>
 	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_compare_color">
-		<text>Compare color on</text>
-	</string>
-	<string id="ui_mcm_dorn_weapon_tooltip_compare_color_desc">
-		<text>When comparing to the equipped weapon: put green/red on the left (main stat) or right (+/- difference). Applies to Dorn and vanilla rows without recalculating numbers. Slash damage rows keep their ammo colors either way.</text>
-	</string>
-	<string id="dorn_weapon_tooltip_main_compare_color_lst_left">
-		<text>Left (main stat)</text>
-	</string>
-	<string id="dorn_weapon_tooltip_main_compare_color_lst_right">
-		<text>Right (+/-)</text>
-	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_compact_header">
 		<text>Compact Header</text>
 	</string>
@@ -108,6 +96,21 @@
 	</string>
 	<string id="dorn_weapon_tooltip_main_column_headers_lst_raw100">
 		<text>Integer (raw armor x100 rounded down) [1, 7, 10, ...]</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_color_scale_from">
+		<text>Colors scale from</text>
+	</string>
+	<string id="ui_mcm_dorn_weapon_tooltip_color_scale_from_desc">
+		<text>Low end of damage-table color ramps (→ green for damage cells, → white for AP). Max end is unchanged.</text>
+	</string>
+	<string id="dorn_weapon_tooltip_main_color_scale_from_lst_white">
+		<text>White</text>
+	</string>
+	<string id="dorn_weapon_tooltip_main_color_scale_from_lst_grey">
+		<text>Grey</text>
+	</string>
+	<string id="dorn_weapon_tooltip_main_color_scale_from_lst_darkgrey">
+		<text>Dark grey</text>
 	</string>
 	<string id="ui_mcm_dorn_weapon_tooltip_use_condition_table">
 		<text>Damage table uses barrel condition</text>
@@ -323,8 +326,8 @@
 			\n
 			\n%c[d_green]Columns%c[default]:
 			\n - %c[d_blue]Type%c[default]: Ammo type used for damage calculations on this row (colored by ammo class: FMJ yellow, HP/BUCK blue, AP orange, etc.). Row order defaults to the tooltip ammo icons order (MCM can sort by Dmg or AP instead).
-			\n - %c[d_blue]AP%c[default]: Armor penetration colored %c[dark_gray]grey%c[default] -> that row's ammo Type color by how well it punches through the listed armor values.
-			\n - %c[d_blue]vs Torso Armor%c[default]: Damage for a given ammo vs a real torso armor value. Damage colored %c[dark_gray]grey%c[default] -> %c[d_green]green%c[default] for how close the value is to max damage for this weapon/ammo/bone.
+			\n - %c[d_blue]AP%c[default]: Armor penetration colored from the MCM low end -> %c[255,255,255,255]white%c[default] by how well it punches through the listed armor values.
+			\n - %c[d_blue]vs Torso Armor%c[default]: Damage for a given ammo vs a real torso armor value. Damage colored from the MCM low end -> %c[d_green]green%c[default] for how close the value is to max damage for this weapon/ammo/bone.
 			\n - %c[d_blue]vs Head Armor%c[default]: Same as %c[d_blue]vs Torso Armor%c[default], but vs real head armor values, and with the x3.65 headshot damage mult factored in.
 			\n
 			\n%c[d_green]Table notes%c[default]:

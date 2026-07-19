@@ -77,6 +77,18 @@ function on_mcm_load()
 						},
 					},
 					{
+						id = "color_scale_from",
+						type = "list",
+						val = 0,
+						def = "darkgrey",
+						hint = "dorn_weapon_tooltip_color_scale_from",
+						content = {
+							{ "white", "white" },
+							{ "grey", "grey" },
+							{ "darkgrey", "darkgrey" },
+						},
+					},
+					{
 						id = "calc_range",
 						type = "track",
 						val = 2,
@@ -116,17 +128,6 @@ function on_mcm_load()
 							{ "inline", "inline" },
 							{ "start", "start" },
 							{ "after", "after" },
-						},
-					},
-					{
-						id = "compare_color",
-						type = "list",
-						val = 0,
-						def = "right",
-						hint = "dorn_weapon_tooltip_compare_color",
-						content = {
-							{ "left", "left" },
-							{ "right", "right" },
 						},
 					},
 					{
