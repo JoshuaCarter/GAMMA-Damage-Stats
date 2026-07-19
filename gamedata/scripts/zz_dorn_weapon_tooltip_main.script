@@ -74,8 +74,8 @@ local DAMAGE_SCALE = 100
 local BUCK_SELF = "ammo_12x70_buck_self"
 
 -- k_ap is the raw armor-piercing coefficient. The ammo's own info card scales it
--- x1000 (k_ap 0.01 -> "10"), so we match that here.
--- Displayed AP = k_ap * AP_SCALE. Color scale: grey at 0 → white at the
+-- x1000 (k_ap 0.01 -> "10"), so we match that here. On listed snipers the table
+-- also adds +5 (CQC +0.05 after k_ap x10). Color scale: grey at 0 → white at the
 -- display AP needed to penetrate 0.650 torso bone armor (Max column) at calc_range.
 local AP_SCALE = 1000
 local AP_COLOR_ARMOR = 0.650
@@ -111,7 +111,7 @@ local NUM_TORSO_TIERS = #TORSO_TIERS
 local NUM_HEAD_TIERS = #HEAD_TIERS
 
 -- Live combat math follows CQC grok_bo (higher load order than GBOOBS):
--- combat AP = (ini k_ap + sniper 0.05) x10 x ap_scale x barrel / range_factor
+-- combat AP = (ini k_ap x10 + sniper 0.05) x ap_scale x barrel / range_factor
 --   x 0.80 x difficulty x silencer (1.07 when equipped / integrated, if MCM on).
 -- Bone mults from CQC stalker_damage. Difficulty from CQC/GAMMA diff_game type.
 -- Mutant path has no silencer in CQC; species/weak-spot mults are rule-of-thumb only.
@@ -121,7 +121,8 @@ local BALLISTIC_BONUS = 1.1
 local K_AP_COMBAT_SCALE = 10  -- CQC: ini k_ap * 10 for combat
 local AP_TAIL = 0.80          -- CQC post-grouping AP adjustment
 local SILENCER_BOOST = 1.07
-local SNIPER_AP_BONUS = 0.05  -- CQC: added to raw k_ap for listed snipers
+-- CQC: added to (ini k_ap * 10), not to raw LTX. Display AP column = k_ap*1000 + 5.
+local SNIPER_AP_BONUS = 0.05
 -- CQC: armor chips by combat_ap x 0.60; soft-pen if ap still beats chipped armor.
 local ARMOR_CHIP_FRAC = 0.60
 -- CQC residual (hard fail): 0.0025 x power x hit_frac x random(25,100) / hp_ammo_mult.
@@ -1542,12 +1543,15 @@ local function gun_hit_power(obj, sec)
 	local from_param = nil
 
 	if utils_item and utils_item.get_param then
-		local v = tonumber(utils_item.get_param(sec, id, "hit_power", "float", true))
-		if v ~= nil then
-			if v ~= 0 then
-				return v
+		local raw_p = utils_item.get_param(sec, id, "hit_power", "float", true)
+		if raw_p ~= nil then
+			local v = tonumber(raw_p)
+			if v ~= nil then
+				if v ~= 0 then
+					return v
+				end
+				from_param = 0
 			end
-			from_param = 0
 		end
 	end
 
@@ -1571,12 +1575,15 @@ local function gun_hit_power(obj, sec)
 	end
 
 	if obj and utils_item and utils_item.get_wpn_param then
-		local v = tonumber(utils_item.get_wpn_param(obj, sec, "hit_power", nil))
-		if v ~= nil then
-			if v ~= 0 then
-				return v
+		local raw_w = utils_item.get_wpn_param(obj, sec, "hit_power", nil)
+		if raw_w ~= nil then
+			local v = tonumber(raw_w)
+			if v ~= nil then
+				if v ~= 0 then
+					return v
+				end
+				from_param = from_param or 0
 			end
-			from_param = from_param or 0
 		end
 	end
 
@@ -1761,7 +1768,7 @@ local function silencer_mult(obj, sec, enabled)
 	return 1
 end
 
--- CQC sniper list: +0.05 on raw ammo k_ap before the x10 combat scale.
+-- CQC sniper list: +0.05 on (ini k_ap * 10), before bone ap_scale / range / tail.
 local function sniper_ap_bonus(sec)
 	if not sec then
 		return 0
@@ -1773,9 +1780,15 @@ local function sniper_ap_bonus(sec)
 	return 0
 end
 
--- CQC: (k_ap + sniper) x10 x ap_scale x barrel / range_factor x 0.80 x difficulty x silencer.
-local function combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer)
-	return (k_ap_ltx * K_AP_COMBAT_SCALE)
+-- Display AP (ammo-card scale): ini k_ap x1000, plus +5 when sniper bonus applies.
+local function display_ap(k_ap_ltx, sniper_bonus)
+	local bonus = (sniper_bonus or 0) * (AP_SCALE / K_AP_COMBAT_SCALE)
+	return math.floor((k_ap_ltx or 0) * AP_SCALE + bonus + 0.5)
+end
+
+-- CQC: (ini k_ap x10 + sniper) x ap_scale x barrel / range_factor x 0.80 x difficulty x silencer.
+local function combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer, sniper_bonus)
+	return (k_ap_ltx * K_AP_COMBAT_SCALE + (sniper_bonus or 0))
 		* ap_scale * (barrel or 1)
 		/ dist_atten(air_res, dist)
 		* AP_TAIL
@@ -1792,8 +1805,8 @@ local function base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, 
 		* (silencer or 1)
 end
 
-local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel, ammo_sec, silencer)
-	local ap = combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer)
+local function effective_dmg(hit_power, k_hit, k_ap_ltx, air_res, armor, ap_scale, hit_frac, bone_mult, dist, pellet_mult, barrel, ammo_sec, silencer, sniper_bonus)
+	local ap = combat_ap(k_ap_ltx, air_res, dist, ap_scale, barrel, silencer, sniper_bonus)
 	local power = base_power(hit_power, k_hit, air_res, dist, bone_mult, ap_scale, pellet_mult, barrel, ammo_sec, silencer)
 	local dmg
 	-- Armor 0 (bare head): always full power.
@@ -1845,14 +1858,14 @@ local function section_dmg_max(rows, section)
 	return hi
 end
 
-local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel, ammo_sec, silencer)
+local function calc_tier_damages(hit_power, k_hit, k_ap_ltx, air_res, tiers, headshot, dist, pellet_mult, barrel, ammo_sec, silencer, sniper_bonus)
 	local bone_mult = headshot and BONE_DMG_HEAD or BONE_DMG_TORSO
 	local out = {}
 	for i, tier in ipairs(tiers) do
 		out[i] = effective_dmg(
 			hit_power, k_hit, k_ap_ltx, air_res, tier.armor,
 			tier.ap_scale, tier.hit_frac, bone_mult,
-			dist, pellet_mult, barrel, ammo_sec, silencer
+			dist, pellet_mult, barrel, ammo_sec, silencer, sniper_bonus
 		)
 	end
 	return out
@@ -1874,6 +1887,7 @@ local function collect_sorted_ammo_rounds(obj, sec, max_count)
 		return nil
 	end
 
+	local sniper_ap = sniper_ap_bonus(sec)
 	local rounds = {}
 	local seen = {}
 
@@ -1905,7 +1919,8 @@ local function collect_sorted_ammo_rounds(obj, sec, max_count)
 				k_ap = k_ap,
 				air_res = air_res,
 				pellets = pellets,
-				ap = math.floor(k_ap * AP_SCALE + 0.5),
+				-- Includes sniper +5 when applicable (CQC +0.05 after k_ap x10).
+				ap = display_ap(k_ap, sniper_ap),
 				-- Weapon hit_power is constant per gun; sort by ammo damage contribution.
 				dmg = k_hit * pellets,
 			}
@@ -1975,14 +1990,13 @@ local function build_ammo_damage_rows(obj, sec)
 	local sniper_ap = sniper_ap_bonus(sec)
 	local rows = {}
 	for _, r in ipairs(rounds) do
-		local k_ap = r.k_ap + sniper_ap
 		local torso = fmt_tier_cells(calc_tier_damages(
-			hit_power, r.k_hit, k_ap, r.air_res, TORSO_TIERS,
-			false, dist, r.pellets, barrel, r.sec, silencer
+			hit_power, r.k_hit, r.k_ap, r.air_res, TORSO_TIERS,
+			false, dist, r.pellets, barrel, r.sec, silencer, sniper_ap
 		), NUM_TORSO_TIERS)
 		local head = fmt_tier_cells(calc_tier_damages(
-			hit_power, r.k_hit, k_ap, r.air_res, HEAD_TIERS,
-			true, dist, r.pellets, barrel, r.sec, silencer
+			hit_power, r.k_hit, r.k_ap, r.air_res, HEAD_TIERS,
+			true, dist, r.pellets, barrel, r.sec, silencer, sniper_ap
 		), NUM_HEAD_TIERS)
 		rows[#rows + 1] = {
 			label = r.label,
