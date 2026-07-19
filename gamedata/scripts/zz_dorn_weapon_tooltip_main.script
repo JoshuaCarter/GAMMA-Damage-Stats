@@ -297,11 +297,13 @@ local AMMO_TYPE_UNKNOWN = "????"
 
 -- Type-column colors by short label (ammo_type_label_reference.md Color column).
 -- Lookup by label; unknown / ???? fall back to grey.
--- RGB matches color_defs.xml where names overlap; teal ≈ d_cyan.
+-- RGB matches color_defs.xml where names overlap; blue is lightened vs d_blue
+-- so its brightness sits closer to yellow/orange ammo Type colors.
 local TYPE_RGB = {
 	yellow = { 255, 255, 0 },
 	orange = { 255, 150, 0 },
 	teal = { 64, 200, 180 },
+	blue = { 100, 120, 255 },
 	grey = { 170, 170, 170 },
 }
 local TYPE_ARGB = {}
@@ -321,11 +323,11 @@ local AMMO_TYPE_COLOR = {
 	["SP10"] = "yellow",
 	["SP-5"] = "yellow",
 	["PP"] = "yellow",
-	-- teal
-	["HP"] = "teal",
-	["BUCK"] = "teal",
-	["SHRAP"] = "teal",
-	["FED"] = "teal",
+	-- light blue (d_blue)
+	["HP"] = "blue",
+	["BUCK"] = "blue",
+	["SHRAP"] = "blue",
+	["FED"] = "blue",
 	-- orange
 	["AP"] = "orange",
 	["SLAP"] = "orange",
@@ -380,11 +382,25 @@ local CLR = {
 	cmp_neg = GetARGB(200, 255, 100, 100),
 }
 
+-- Complex %c often ignores alpha vs SetTextColor(GetARGB(a,...)); bake A into RGB
+-- so multipart compares match stock single-value compare brightness.
+local function cmp_text_code(a, r, g, b)
+	local s = a / 255
+	return string.format("%%c[255,%d,%d,%d]",
+		math.floor(r * s + 0.5),
+		math.floor(g * s + 0.5),
+		math.floor(b * s + 0.5))
+end
+
+local CMP_CODE_POS = cmp_text_code(200, 100, 255, 100)
+local CMP_CODE_NEG = cmp_text_code(200, 255, 100, 100)
+local CMP_CODE_DEF = "%c[default]"
+
 -- Forward-declared here so the display helpers below capture these as upvalues.
 local format_raw_ammo_damage_slash
 local format_stalker_ammo_damage_slash
-local avg_raw_ammo_damage
-local avg_stalker_ammo_damage
+local mutant_ammo_damage_items
+local stalker_ammo_damage_items
 
 local ENHANCED_STAT_LABELS = {}
 
@@ -502,6 +518,75 @@ local function format_signed_diff(diff, decimals)
 	return diff_txt
 end
 
+-- Inline compare colors for multi-part (+/-) text (same RGB/alpha as CLR.cmp_*).
+local function colored_signed_diff(diff, decimals, lower_is_better)
+	local body = format_signed_diff(diff, decimals)
+	if diff == 0 then
+		return CMP_CODE_DEF .. body
+	end
+	local better
+	if lower_is_better then
+		better = diff < 0
+	else
+		better = diff > 0
+	end
+	return (better and CMP_CODE_POS or CMP_CODE_NEG) .. body
+end
+
+-- Multi-delta compare: each +/- colored alone; brackets/commas from average.
+local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, color_value)
+	if not ele or not ele.comp or not diffs or #diffs == 0 then
+		return false
+	end
+	local sum = 0
+	local any = false
+	for i = 1, #diffs do
+		sum = sum + diffs[i]
+		if diffs[i] ~= 0 then
+			any = true
+		end
+	end
+	if not any then
+		ele.comp:Show(false)
+		return false
+	end
+	local avg = sum / #diffs
+	local avg_code = CMP_CODE_DEF
+	if avg ~= 0 then
+		local better
+		if lower_is_better then
+			better = avg < 0
+		else
+			better = avg > 0
+		end
+		avg_code = better and CMP_CODE_POS or CMP_CODE_NEG
+	end
+	local parts = {}
+	for i = 1, #diffs do
+		parts[i] = colored_signed_diff(diffs[i], decimals, lower_is_better)
+	end
+	ele.comp:SetTextComplexMode(true)
+	ele.comp:SetText(avg_code .. "("
+		.. table.concat(parts, avg_code .. ", ")
+		.. avg_code .. ")")
+	ele.comp:Show(true)
+	ele.comp:SetTextColor(CLR.white)
+	if color_value ~= false and ele.txt then
+		if CONFIG.compare_color == "left" and avg ~= 0 then
+			local better
+			if lower_is_better then
+				better = avg < 0
+			else
+				better = avg > 0
+			end
+			ele.txt:SetTextColor(better and CLR.cmp_pos or CLR.cmp_neg)
+		else
+			ele.txt:SetTextColor(CLR.white)
+		end
+	end
+	return true
+end
+
 local function paint_compare_colors(ele, better, color_value)
 	local clr = better and CLR.cmp_pos or CLR.cmp_neg
 	local color_right = CONFIG.compare_color ~= "left"
@@ -557,7 +642,7 @@ local function resolve_compare_sec(obj_b)
 	return nil
 end
 
--- Spread: show both min and max deltas "(+x, -y)"; color from average (lower better).
+-- Spread: per-angle deltas with individual green/red (lower is better).
 local function apply_spread_compare(ele, obj, sec, obj_b, decimals)
 	local S = dorn_weapon_tooltip_stats
 	if not ele or not ele.comp or not S or not obj_b then
@@ -576,17 +661,7 @@ local function apply_spread_compare(ele, obj, sec, obj_b, decimals)
 	end
 	local d_lo = round_compare(lo_a, decimals) - round_compare(lo_b, decimals)
 	local d_hi = round_compare(hi_a, decimals) - round_compare(hi_b, decimals)
-	if d_lo == 0 and d_hi == 0 then
-		ele.comp:Show(false)
-		return false
-	end
-	ele.comp:SetText("(" .. format_signed_diff(d_lo, decimals)
-		.. ", " .. format_signed_diff(d_hi, decimals) .. ")")
-	ele.comp:Show(true)
-	local avg_a = (lo_a + hi_a) * 0.5
-	local avg_b = (lo_b + hi_b) * 0.5
-	paint_compare_colors(ele, avg_a < avg_b, true)
-	return true
+	return apply_multipart_compare(ele, { d_lo, d_hi }, decimals, true, true)
 end
 
 -- Move stock-painted compare colors to the MCM side without recalculating values.
@@ -624,19 +699,34 @@ local function apply_companion_compare(ele, name_id, obj, sec, obj_b)
 	return apply_numeric_compare(ele, val_a, val_b, lower_better, decimals)
 end
 
--- Slash rows: compare mean of the per-ammo numbers shown in the slash.
-local function apply_slash_damage_compare(ele, avg_fn, obj, sec, obj_b)
-	if not avg_fn or not obj_b then
+-- Slash rows: per-ammo deltas "(+/-X, …)" matched by ammo section; each colored alone.
+local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
+	if not items_fn or not obj_b then
 		return false
 	end
-	return apply_numeric_compare(
-		ele,
-		avg_fn(obj, sec),
-		avg_fn(obj_b, resolve_compare_sec(obj_b)),
-		false,
-		1,
-		false
-	)
+	local items_a = items_fn(obj, sec)
+	local items_b = items_fn(obj_b, resolve_compare_sec(obj_b))
+	if not items_a or not items_b or #items_a == 0 then
+		return false
+	end
+	local by_sec = {}
+	for i = 1, #items_b do
+		local it = items_b[i]
+		if it.sec then
+			by_sec[it.sec] = it.dmg
+		end
+	end
+	local diffs = {}
+	for i = 1, #items_a do
+		local it = items_a[i]
+		local b = it.sec and by_sec[it.sec]
+		if b == nil then
+			diffs[i] = 0
+		else
+			diffs[i] = round_compare(it.dmg, 1) - round_compare(b, 1)
+		end
+	end
+	return apply_multipart_compare(ele, diffs, 1, false, false)
 end
 
 local function apply_custom_stat_display(info, obj, sec)
@@ -690,10 +780,10 @@ local function apply_custom_stat_display(info, obj, sec)
 						if obj_b then
 							if cap == ENHANCED_STAT_LABELS.stalker_damage then
 								comparing = apply_slash_damage_compare(
-									ele, avg_stalker_ammo_damage, obj, sec, obj_b)
+									ele, stalker_ammo_damage_items, obj, sec, obj_b)
 							elseif cap == ENHANCED_STAT_LABELS.ammo_damage then
 								comparing = apply_slash_damage_compare(
-									ele, avg_raw_ammo_damage, obj, sec, obj_b)
+									ele, mutant_ammo_damage_items, obj, sec, obj_b)
 							else
 								local name_id = companion_name_id_for_cap(cap)
 								if name_id then
@@ -1856,8 +1946,8 @@ local MUTANT_AMMO_MULT = {
 }
 
 -- Per-ammo flesh damage vs a generic mutant (species mult 100%, no weak spot).
--- Same ammo order as the damage table. Returns { {label=, dmg=}, ... } or nil.
-local function mutant_ammo_damage_items(obj, sec)
+-- Same ammo order as the damage table. Returns { {sec=, label=, dmg=}, ... } or nil.
+mutant_ammo_damage_items = function(obj, sec)
 	local rounds = collect_sorted_ammo_rounds(obj, sec, nil)
 	if not rounds then
 		return nil
@@ -1880,7 +1970,7 @@ local function mutant_ammo_damage_items(obj, sec)
 				* barrel * diff
 				* DAMAGE_SCALE + 0.5
 		)
-		items[#items + 1] = { label = r.label, dmg = dmg }
+		items[#items + 1] = { sec = r.sec, label = r.label, dmg = dmg }
 	end
 	if #items == 0 then
 		return nil
@@ -1889,7 +1979,7 @@ local function mutant_ammo_damage_items(obj, sec)
 end
 
 -- Per-ammo pre-armor stalker torso damage at calc_range() (CQC power, no AP/armor).
-local function stalker_ammo_damage_items(obj, sec)
+stalker_ammo_damage_items = function(obj, sec)
 	local rounds = collect_sorted_ammo_rounds(obj, sec, nil)
 	if not rounds then
 		return nil
@@ -1909,23 +1999,12 @@ local function stalker_ammo_damage_items(obj, sec)
 			base_power(hit_power, r.k_hit, r.air_res, dist, BONE_DMG_TORSO, 1.0, r.pellets, barrel, r.sec, silencer)
 				* DAMAGE_SCALE + 0.5
 		)
-		items[#items + 1] = { label = r.label, dmg = dmg }
+		items[#items + 1] = { sec = r.sec, label = r.label, dmg = dmg }
 	end
 	if #items == 0 then
 		return nil
 	end
 	return items
-end
-
-local function avg_ammo_damage(items)
-	if not items or #items == 0 then
-		return nil
-	end
-	local sum = 0
-	for _, it in ipairs(items) do
-		sum = sum + it.dmg
-	end
-	return sum / #items
 end
 
 local function slash_from_damage_items(items)
@@ -1946,14 +2025,6 @@ end
 
 format_stalker_ammo_damage_slash = function(obj, sec)
 	return slash_from_damage_items(stalker_ammo_damage_items(obj, sec))
-end
-
-avg_raw_ammo_damage = function(obj, sec)
-	return avg_ammo_damage(mutant_ammo_damage_items(obj, sec))
-end
-
-avg_stalker_ammo_damage = function(obj, sec)
-	return avg_ammo_damage(stalker_ammo_damage_items(obj, sec))
 end
 
 local function apply_column_headers(fields)
@@ -2290,8 +2361,7 @@ local function set_wnd_y(wnd, y)
 	wnd:SetWndPos(vector2():set(p.x, y))
 end
 
--- Weight just under the name; STATUS/desc sits SECTION_GAP below weight
--- (same spacing as above/below PROPERTIES and other Sync_Finale blocks).
+-- Weight just under the name; STATUS/desc sits 5px closer than a full SECTION_GAP.
 local function apply_compact_header(info)
 	if not info or not info.name or not info.weight or not info.desc then
 		return
@@ -2308,9 +2378,9 @@ local function apply_compact_header(info)
 		set_wnd_y(info.value, weight_y)
 		if info.note and info.note:IsShown() then
 			info:Sync_Y(info.weight, info.note, SECTION_GAP)
-			info:Sync_Y(info.note, info.desc, SECTION_GAP)
+			info:Sync_Y(info.note, info.desc, SECTION_GAP - 5)
 		else
-			info:Sync_Y(info.weight, info.desc, SECTION_GAP)
+			info:Sync_Y(info.weight, info.desc, SECTION_GAP - 5)
 		end
 	else
 		set_wnd_y(info.weight, ys.weight)

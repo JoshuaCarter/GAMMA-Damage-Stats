@@ -65,16 +65,6 @@ function on_mcm_load()
 						hint = "dorn_weapon_tooltip_show_damage_table",
 					},
 					{
-						id = "calc_range",
-						type = "track",
-						val = 2,
-						min = 0,
-						max = 200,
-						step = 1,
-						def = 30,
-						hint = "dorn_weapon_tooltip_calc_range",
-					},
-					{
 						id = "column_headers",
 						type = "list",
 						val = 0,
@@ -85,6 +75,16 @@ function on_mcm_load()
 							{ "raw100", "raw100" },
 							{ "raw", "raw" },
 						},
+					},
+					{
+						id = "calc_range",
+						type = "track",
+						val = 2,
+						min = 0,
+						max = 200,
+						step = 1,
+						def = 30,
+						hint = "dorn_weapon_tooltip_calc_range",
 					},
 					{
 						id = "use_condition_table",

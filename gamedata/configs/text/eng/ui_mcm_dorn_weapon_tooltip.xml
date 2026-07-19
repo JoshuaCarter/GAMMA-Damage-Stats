@@ -322,7 +322,7 @@
 			\n(see Useful Info for torso/head armor floats and example outfits)
 			\n
 			\n%c[d_green]Columns%c[default]:
-			\n - %c[d_blue]Type%c[default]: Ammo type used for damage calculations on this row (colored by ammo class: FMJ yellow, HP/BUCK teal, AP orange, etc.). Row order defaults to the tooltip ammo icons order (MCM can sort by Dmg or AP instead).
+			\n - %c[d_blue]Type%c[default]: Ammo type used for damage calculations on this row (colored by ammo class: FMJ yellow, HP/BUCK blue, AP orange, etc.). Row order defaults to the tooltip ammo icons order (MCM can sort by Dmg or AP instead).
 			\n - %c[d_blue]AP%c[default]: Armor penetration colored %c[dark_gray]grey%c[default] -> that row's ammo Type color by how well it punches through the listed armor values.
 			\n - %c[d_blue]vs Torso Armor%c[default]: Damage for a given ammo vs a real torso armor value. Damage colored %c[dark_gray]grey%c[default] -> %c[d_green]green%c[default] for how close the value is to max damage for this weapon/ammo/bone.
 			\n - %c[d_blue]vs Head Armor%c[default]: Same as %c[d_blue]vs Torso Armor%c[default], but vs real head armor values, and with the x3.65 headshot damage mult factored in.
