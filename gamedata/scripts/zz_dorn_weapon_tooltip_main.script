@@ -213,7 +213,7 @@ local DMG_CLR_MAX = { 64, 255, 64 }
 local COLOR_SCALE_FROM = {
 	white = { 255, 255, 255 },
 	grey = { 175, 175, 175 },
-	darkgrey = { 135, 135, 135 },
+	darkgrey = { 80, 80, 80 },
 }
 
 local function scale_from_rgb()
@@ -369,6 +369,11 @@ local function ammo_type_color(label)
 	return (name and TYPE_ARGB[name]) or TYPE_ARGB.grey
 end
 
+-- Color family used for slash compare matching (FMJ↔SLUG, HP↔BUCK, AP↔SLAP, …).
+local function ammo_color_key(label)
+	return AMMO_TYPE_COLOR[label] or "grey"
+end
+
 local function color_ammo_value(label, text)
 	local name = AMMO_TYPE_COLOR[label]
 	return ((name and TYPE_CODE[name]) or TYPE_CODE.grey) .. tostring(text)
@@ -397,7 +402,8 @@ end
 
 local CMP_CODE_POS = cmp_text_code(200, 100, 255, 100)
 local CMP_CODE_NEG = cmp_text_code(200, 255, 100, 100)
-local CMP_CODE_DEF = "%c[default]"
+-- Punctuation / placeholders / zero deltas in compare text (not green/red).
+local CMP_CODE_GREY = "%c[255,175,175,175]"
 
 -- Forward-declared here so the display helpers below capture these as upvalues.
 local format_raw_ammo_damage_slash
@@ -522,10 +528,11 @@ local function format_signed_diff(diff, decimals)
 end
 
 -- Inline compare colors for multi-part (+/-) text (same RGB/alpha as CLR.cmp_*).
+-- Only the signed number is tinted; callers wrap punctuation in CMP_CODE_GREY.
 local function colored_signed_diff(diff, decimals, lower_is_better)
 	local body = format_signed_diff(diff, decimals)
 	if diff == 0 then
-		return CMP_CODE_DEF .. body
+		return CMP_CODE_GREY .. body
 	end
 	local better
 	if lower_is_better then
@@ -536,61 +543,65 @@ local function colored_signed_diff(diff, decimals, lower_is_better)
 	return (better and CMP_CODE_POS or CMP_CODE_NEG) .. body
 end
 
--- Multi-delta compare: each +/- colored alone; brackets/commas from average.
-local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, color_value)
+-- Whitens main value when color_value ~= false (slash rows pass false to keep ammo colors).
+local function maybe_whiten_value(ele, color_value)
+	if color_value ~= false and ele and ele.txt then
+		ele.txt:SetTextColor(CLR.white)
+	end
+end
+
+-- Build "(a / b / …)" or "(a, b)" with grey punctuation; only ±N is green/red.
+-- diffs[i]=false → "-" placeholder (default color).
+local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, color_value, _use_inline_colors, sep)
 	if not ele or not ele.comp or not diffs or #diffs == 0 then
 		return false
 	end
+	sep = sep or ", "
 	local sum = 0
+	local n = 0
 	local any = false
+	local any_placeholder = false
 	for i = 1, #diffs do
-		sum = sum + diffs[i]
-		if diffs[i] ~= 0 then
-			any = true
+		local d = diffs[i]
+		if d == false then
+			any_placeholder = true
+		else
+			sum = sum + d
+			n = n + 1
+			if d ~= 0 then
+				any = true
+			end
 		end
 	end
-	if not any then
+	-- Hide only when every slot is a real 0 (no placeholders, nothing differs).
+	if n == 0 and not any_placeholder then
 		ele.comp:Show(false)
 		return false
 	end
-	local avg = sum / #diffs
-	local avg_code = CMP_CODE_DEF
-	if avg ~= 0 then
-		local better
-		if lower_is_better then
-			better = avg < 0
-		else
-			better = avg > 0
-		end
-		avg_code = better and CMP_CODE_POS or CMP_CODE_NEG
+	if n > 0 and not any and not any_placeholder then
+		ele.comp:Show(false)
+		return false
 	end
+
 	local parts = {}
 	for i = 1, #diffs do
-		parts[i] = colored_signed_diff(diffs[i], decimals, lower_is_better)
+		if diffs[i] == false then
+			parts[i] = CMP_CODE_GREY .. "-"
+		else
+			parts[i] = colored_signed_diff(diffs[i], decimals, lower_is_better)
+		end
 	end
 	ele.comp:SetTextComplexMode(true)
-	ele.comp:SetText(avg_code .. "("
-		.. table.concat(parts, avg_code .. ", ")
-		.. avg_code .. ")")
+	ele.comp:SetText(CMP_CODE_GREY .. "("
+		.. table.concat(parts, CMP_CODE_GREY .. sep)
+		.. CMP_CODE_GREY .. ")")
 	ele.comp:Show(true)
 	ele.comp:SetTextColor(CLR.white)
-	if color_value ~= false and ele.txt then
-		ele.txt:SetTextColor(CLR.white)
-	end
+	maybe_whiten_value(ele, color_value)
 	return true
 end
 
--- Green/red on "(+/-diff)"; main value stays white unless color_value=false (slash rows).
-local function paint_compare_colors(ele, better, color_value)
-	local clr = better and CLR.cmp_pos or CLR.cmp_neg
-	ele.comp:SetTextColor(clr)
-	if color_value ~= false and ele.txt then
-		ele.txt:SetTextColor(CLR.white)
-	end
-end
-
--- Stock text compare: green/red on "(+/-diff)".
--- Returns true when a compare delta was shown.
+-- Stock text compare: "(+/-diff)" with default parens; only ±N is green/red.
 -- color_value=false: never paint the main text (slash rows keep ammo colors).
 local function apply_numeric_compare(ele, val_a, val_b, lower_is_better, decimals, color_value)
 	if not ele or not ele.comp or val_a == nil or val_b == nil then
@@ -603,15 +614,13 @@ local function apply_numeric_compare(ele, val_a, val_b, lower_is_better, decimal
 		return false
 	end
 	local diff = a - b
-	ele.comp:SetText("(" .. format_signed_diff(diff, decimals) .. ")")
+	ele.comp:SetTextComplexMode(true)
+	ele.comp:SetText(CMP_CODE_GREY .. "("
+		.. colored_signed_diff(diff, decimals, lower_is_better)
+		.. CMP_CODE_GREY .. ")")
 	ele.comp:Show(true)
-	local better
-	if lower_is_better then
-		better = a < b
-	else
-		better = a > b
-	end
-	paint_compare_colors(ele, better, color_value)
+	ele.comp:SetTextColor(CLR.white)
+	maybe_whiten_value(ele, color_value)
 	return true
 end
 
@@ -647,19 +656,48 @@ local function apply_spread_compare(ele, obj, sec, obj_b, decimals)
 	end
 	local d_lo = round_compare(lo_a, decimals) - round_compare(lo_b, decimals)
 	local d_hi = round_compare(hi_a, decimals) - round_compare(hi_b, decimals)
-	return apply_multipart_compare(ele, { d_lo, d_hi }, decimals, true, true)
+	return apply_multipart_compare(ele, { d_lo, d_hi }, decimals, true, true, true)
 end
 
--- Move stock green/red from the main number onto (+/-) for text rows.
--- Bar rows already paint (+/-); leave them alone when txt is hidden.
+-- Move stock green/red off the main number; recolor compare so only ±N is tinted
+-- (parens / % stay grey). Bar rows already paint (+/-); leave alone when txt hidden.
 local function relocate_stock_compare_colors(ele)
 	if not ele or not ele.comp or not ele.comp:IsShown() then
 		return
 	end
 	if ele.txt and ele.txt:IsShown() then
-		ele.comp:SetTextColor(ele.txt:GetTextColor())
 		ele.txt:SetTextColor(CLR.white)
 	end
+	local raw = ele.comp:GetText()
+	if not raw or raw == "" then
+		return
+	end
+	-- "(±N)" / "(±N%)" or bare "±N%"
+	local body = raw:match("^%((.+)%)$")
+	local wrapped = body ~= nil
+	if not body then
+		body = raw
+	end
+	local num_part, pct = body:match("^(.*)(%%)$")
+	if not num_part then
+		num_part, pct = body, ""
+	end
+	local n = tonumber(num_part)
+	local code = CMP_CODE_GREY
+	if n then
+		if n > 0 then
+			code = CMP_CODE_POS
+		elseif n < 0 then
+			code = CMP_CODE_NEG
+		end
+	end
+	ele.comp:SetTextComplexMode(true)
+	if wrapped then
+		ele.comp:SetText(CMP_CODE_GREY .. "(" .. code .. num_part .. pct .. CMP_CODE_GREY .. ")")
+	else
+		ele.comp:SetText(code .. num_part .. CMP_CODE_GREY .. pct)
+	end
+	ele.comp:SetTextColor(CLR.white)
 end
 
 local function apply_companion_compare(ele, name_id, obj, sec, obj_b)
@@ -679,10 +717,13 @@ local function apply_companion_compare(ele, name_id, obj, sec, obj_b)
 	return apply_numeric_compare(ele, val_a, val_b, lower_better, decimals)
 end
 
--- Slash rows: only compare ammo types present on both guns (same Type label /
--- color: FMJ↔FMJ, HP↔HP, …). Types unique to one weapon are dropped first.
+-- Slash rows: walk current-weapon ammo order; match by section else Type color
+-- family (yellow/blue/orange/grey — same map as the slash value colors:
+-- FMJ↔SLUG, HP↔BUCK, AP↔SLAP, …). Missing on B → "-" placeholder so (+/-)
+-- lines up with the left slash (e.g. FMJ/HP/AP vs FMJ/AP → "(+5 / - / -3)").
+-- No shared colors at all → "(- / - / -)" so the column is not left blank.
 local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
-	if not items_fn or not obj_b then
+	if not items_fn or not obj_b or not ele or not ele.comp then
 		return false
 	end
 	local items_a = items_fn(obj, sec)
@@ -690,25 +731,58 @@ local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
 	if not items_a or not items_b or #items_a == 0 or #items_b == 0 then
 		return false
 	end
-	local b_by_label = {}
+	local b_by_sec = {}
+	local b_by_color = {}
 	for i = 1, #items_b do
 		local it = items_b[i]
+		if it.sec then
+			b_by_sec[it.sec] = it.dmg
+		end
 		if it.label then
-			b_by_label[it.label] = it.dmg
+			b_by_color[ammo_color_key(it.label)] = it.dmg
 		end
 	end
 	local diffs = {}
+	local any_shared = false
+	local any_nonzero = false
+	local any_placeholder = false
 	for i = 1, #items_a do
 		local it = items_a[i]
-		local b = it.label and b_by_label[it.label]
+		local b = (it.sec and b_by_sec[it.sec])
+			or (it.label and b_by_color[ammo_color_key(it.label)])
 		if b ~= nil then
-			diffs[#diffs + 1] = round_compare(it.dmg, 1) - round_compare(b, 1)
+			any_shared = true
+			local d = round_compare(it.dmg, 1) - round_compare(b, 1)
+			diffs[i] = d
+			if d ~= 0 then
+				any_nonzero = true
+			end
+		else
+			diffs[i] = false
+			any_placeholder = true
 		end
 	end
-	if #diffs == 0 then
+	-- Identical on every shared type and nothing missing → nothing to show.
+	if any_shared and not any_nonzero and not any_placeholder then
+		ele.comp:Show(false)
 		return false
 	end
-	return apply_multipart_compare(ele, diffs, 1, false, false)
+	-- No shared colors: still emit placeholders in current-weapon order.
+	if not any_shared then
+		local parts = {}
+		for i = 1, #diffs do
+			parts[i] = CMP_CODE_GREY .. "-"
+		end
+		ele.comp:SetTextComplexMode(true)
+		ele.comp:SetText(CMP_CODE_GREY .. "("
+			.. table.concat(parts, CMP_CODE_GREY .. " / ")
+			.. CMP_CODE_GREY .. ")")
+		ele.comp:Show(true)
+		ele.comp:SetTextColor(CLR.white)
+		return true
+	end
+	-- " / " matches left slash separators; punctuation grey, ±N tinted.
+	return apply_multipart_compare(ele, diffs, 1, false, false, false, " / ")
 end
 
 local function apply_custom_stat_display(info, obj, sec)
