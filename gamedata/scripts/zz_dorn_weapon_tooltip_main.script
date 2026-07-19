@@ -557,12 +557,11 @@ end
 
 -- Build "(a / b / …)" or "(a, b)" with grey punctuation; only ±N is green/red.
 -- diffs[i]=false → "-" placeholder (grey).
-local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, color_value, _use_inline_colors, sep)
+local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, color_value, sep)
 	if not ele or not ele.comp or not diffs or #diffs == 0 then
 		return false
 	end
 	sep = sep or ", "
-	local sum = 0
 	local n = 0
 	local any = false
 	local any_placeholder = false
@@ -571,7 +570,6 @@ local function apply_multipart_compare(ele, diffs, decimals, lower_is_better, co
 		if d == false then
 			any_placeholder = true
 		else
-			sum = sum + d
 			n = n + 1
 			if d ~= 0 then
 				any = true
@@ -661,7 +659,7 @@ local function apply_spread_compare(ele, obj, sec, obj_b, decimals)
 	end
 	local d_lo = round_compare(lo_a, decimals) - round_compare(lo_b, decimals)
 	local d_hi = round_compare(hi_a, decimals) - round_compare(hi_b, decimals)
-	return apply_multipart_compare(ele, { d_lo, d_hi }, decimals, true, true, true)
+	return apply_multipart_compare(ele, { d_lo, d_hi }, decimals, true, true)
 end
 
 -- Move stock green/red off the main number; recolor compare so only ±N is tinted
@@ -722,11 +720,30 @@ local function apply_companion_compare(ele, name_id, obj, sec, obj_b)
 	return apply_numeric_compare(ele, val_a, val_b, lower_better, decimals)
 end
 
+-- True if items list has two+ rounds in the same compare color family.
+local function items_have_duplicate_color(items)
+	if not items then
+		return false
+	end
+	local seen = {}
+	for i = 1, #items do
+		local ck = items[i].label and ammo_color_key(items[i].label)
+		if ck then
+			if seen[ck] then
+				return true
+			end
+			seen[ck] = true
+		end
+	end
+	return false
+end
+
 -- Slash rows: walk current-weapon ammo order. Match by section, else Type label,
 -- else Type color family (yellow/blue/orange only — same map as slash value colors:
 -- FMJ↔SLUG, HP↔BUCK, AP↔SLAP). Missing on B → "-" placeholder so (+/-) lines up
 -- with the left slash (e.g. FMJ/HP/AP vs FMJ/AP → "(+5 / - / -3)").
 -- No shared matches at all → "(- / - / -)" so the column is not left blank.
+-- Skip entirely if either gun has two rounds in the same color family.
 local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
 	if not items_fn or not obj_b or not ele or not ele.comp then
 		return false
@@ -734,6 +751,10 @@ local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
 	local items_a = items_fn(obj, sec)
 	local items_b = items_fn(obj_b, resolve_compare_sec(obj_b))
 	if not items_a or not items_b or #items_a == 0 or #items_b == 0 then
+		return false
+	end
+	if items_have_duplicate_color(items_a) or items_have_duplicate_color(items_b) then
+		ele.comp:Show(false)
 		return false
 	end
 	local b_by_sec = {}
@@ -794,7 +815,7 @@ local function apply_slash_damage_compare(ele, items_fn, obj, sec, obj_b)
 		return true
 	end
 	-- " / " matches left slash separators; punctuation grey, ±N tinted.
-	return apply_multipart_compare(ele, diffs, 1, false, false, false, " / ")
+	return apply_multipart_compare(ele, diffs, 1, false, false, " / ")
 end
 
 local function apply_custom_stat_display(info, obj, sec)
