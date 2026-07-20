@@ -11,6 +11,8 @@ Adds detailed weapon info to weapon tooltips and details window in **S.T.A.L.K.E
 2. Install via MO2 like normal
 3. If you use resolutions under 4k, it is **HIGHLY RECOMMENDED** you change your font size to 1k (see img below)
 
+<img width="615" height="349" alt="font_change" src="https://github.com/user-attachments/assets/935e8e34-3c30-4c68-950f-e5757604ac86" />
+
 ## See my other mods here:
 
 https://github.com/JoshuaCarter/GAMMA-Mods
