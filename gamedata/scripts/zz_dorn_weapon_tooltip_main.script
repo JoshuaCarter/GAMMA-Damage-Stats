@@ -388,6 +388,8 @@ end
 local CLR = {
 	white = GetARGB(255, 255, 255, 255),
 	value = GetARGB(255, 175, 175, 175),
+	-- Column header labels (Type / AP / armor tiers).
+	hdr = GetARGB(255, 230, 210, 160),
 	-- Match utils_ui clr_list p1/n1 (stock stat value colors).
 	stat_pos = GetARGB(255, 170, 170, 170),
 	stat_neg = GetARGB(255, 200, 50, 50),
@@ -2144,25 +2146,30 @@ local function apply_column_headers(fields)
 		return
 	end
 
+	if fields.title then
+		fields.title:SetTextColor(CLR.white)
+	end
 	if fields.grp_torso then
 		fields.grp_torso:SetText("vs Torso Armor")
+		fields.grp_torso:SetTextColor(CLR.white)
 	end
 	if fields.grp_head then
 		fields.grp_head:SetText("vs Head Armor")
+		fields.grp_head:SetTextColor(CLR.white)
 	end
 
 	for i, tier in ipairs(TORSO_TIERS) do
 		local wnd = fields.col_labels.torso[i]
 		if wnd then
 			wnd:SetText(column_header_text(tier))
-			wnd:SetTextColor(CLR.white)
+			wnd:SetTextColor(CLR.hdr)
 		end
 	end
 	for i, tier in ipairs(HEAD_TIERS) do
 		local wnd = fields.col_labels.head[i]
 		if wnd then
 			wnd:SetText(column_header_text(tier))
-			wnd:SetTextColor(CLR.white)
+			wnd:SetTextColor(CLR.hdr)
 		end
 	end
 end

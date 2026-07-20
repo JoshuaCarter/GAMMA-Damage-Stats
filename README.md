@@ -9,6 +9,7 @@ Adds detailed weapon info to weapon tooltips and details window in **S.T.A.L.K.E
 
 1. Download the latest release from https://github.com/JoshuaCarter/GAMMA-Weapon-Tooltips/releases
 2. Install via MO2 like normal
+3. If you use resolutions under 4k, it is **HIGHLY RECOMMENDED** you change your font size to 1k (see img below)
 
 ## See my other mods here:
 
